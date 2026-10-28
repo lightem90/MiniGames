@@ -1,0 +1,2 @@
+# Same line endings on Windows and in the Linux Docker image
+* text=auto eol=lf

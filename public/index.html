@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MeetingBreak</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <section id="setup">
+    <h1>MeetingBreak</h1>
+    <p class="muted">Paste your meeting (or just describe it). Get a 60-second game about it.</p>
+    <textarea id="text" rows="6" maxlength="4000" placeholder="Budget review, 14 people, Marco talks too much"></textarea>
+    <label class="file">Faces / logos (optional, up to 5)
+      <input id="files" type="file" accept="image/*" multiple>
+    </label>
+    <p id="thumbs"></p>
+    <button id="generate">Generate game</button>
+    <p id="err" class="muted" role="status"></p>
+    <p class="muted small">Privacy: your images never leave this browser and are not put in share links. Only the text you type is sent to build the game, with email addresses removed. Nothing is stored. You are responsible for the images you use.</p>
+  </section>
+
+  <section id="play" hidden>
+    <h1 id="title"></h1>
+    <p id="subtitle" class="muted"></p>
+    <canvas id="canvas" width="400" height="300"></canvas>
+    <div class="row">
+      <button id="pause">Pause</button>
+      <span id="levels"></span>
+    </div>
+    <div id="end" hidden>
+      <p id="endmsg"></p>
+      <p id="endscore"></p>
+      <div class="row">
+        <button id="again">Play again</button>
+        <button id="share">Copy link</button>
+        <button id="remix">Remix</button>
+      </div>
+    </div>
+    <p class="small"><a id="make" href="#" >Make your own</a> · <a id="report" href="#">Report</a></p>
+  </section>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>

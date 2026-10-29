@@ -1,8 +1,8 @@
 // Pure game logic for the `sink` template: no DOM, no canvas, so it can be unit-tested.
 // Flick balls into the hole before time runs out.
 
-export const W = 400;
-export const H = 300;
+import { W, H } from './engine.js';
+export { W, H };
 const BALL_R = 20;
 const MAX_FLICK = 900; // px/s cap so a wild drag can't teleport a ball
 const SINK_SPEED = 260; // a ball faster than this skips over the hole
@@ -89,11 +89,6 @@ export function step(state, dt) {
   state.timeLeft = Math.max(0, state.timeLeft - dt);
   if (state.sunk === state.balls.length) state.status = 'won';
   else if (state.timeLeft === 0) state.status = 'lost';
-}
-
-// Round status ('won'/'lost') -> the spec message key ('win'/'lose').
-export function endMessage(spec, state) {
-  return spec.messages[state.status === 'won' ? 'win' : 'lose'];
 }
 
 export function score(state) {

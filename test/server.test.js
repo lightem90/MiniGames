@@ -2,6 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from '../server.js';
 import { generateSpec, redactEmails } from '../llm.js';
+import { TEMPLATES } from '../public/spec.js';
 
 let srv, base;
 before(async () => {
@@ -29,12 +30,14 @@ test('generateSpec sends no emails to the LLM, mentions image count but sends no
     sent = JSON.parse(init.body);
     return { ok: true, json: async () => ({ choices: [{ message: { content: '```json\n{"title":"T","actors":[{"label":"Marco"}]}\n```' } }] }) };
   };
-  const r = await generateSpec('Marco marco@corp.it', 2, { apiKey: 'k', fetchFn });
+  const r = await generateSpec('Marco marco@corp.it', 2, { apiKey: 'k', fetchFn, player: 'Matteo <b>m@x.it' });
   assert.equal(r.source, 'llm');
   assert.equal(r.spec.title, 'T');
   const msg = sent.messages[1].content;
   assert.ok(!msg.includes('@'));
   assert.ok(msg.includes('2 images'));
+  assert.ok(msg.includes('the player is Matteo') && !msg.includes('<b>'));
+  assert.ok(sent.messages[0].content.includes('defend')); // the prompt knows every template
 });
 
 test('generateSpec calls {baseUrl}/chat/completions with a Bearer key (any OpenAI-compatible provider)', async () => {
@@ -78,7 +81,12 @@ test('POST /spec returns a valid spec', async () => {
   assert.equal(r.status, 200);
   const j = await r.json();
   assert.equal(j.source, 'fallback');
-  assert.equal(j.spec.template, 'sink');
+  assert.ok(TEMPLATES.includes(j.spec.template));
+});
+
+test('GET /config exposes only the OAuth client IDs (empty when unset)', async () => {
+  const j = await (await fetch(base + '/config')).json();
+  assert.deepEqual(Object.keys(j).sort(), ['googleClientId', 'msClientId']);
 });
 
 test('POST /spec rejects bad JSON and oversized bodies', async () => {

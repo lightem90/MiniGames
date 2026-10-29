@@ -1,11 +1,26 @@
-// UI glue: input -> /spec -> sink -> share. Kept dumb on purpose; the logic lives in the tested modules.
-import { normalizeSpec, fallbackSpec, encodeSpec, decodeSpec, DIFFICULTIES } from './spec.js';
+// UI glue: input -> /spec -> template -> share. Kept dumb on purpose; the logic lives in the tested modules.
+import { normalizeSpec, fallbackSpec, encodeSpec, decodeSpec, DIFFICULTIES, TEMPLATES, TEMPLATE_DEFAULTS } from './spec.js';
+import { destroy } from './engine.js';
+import { parseInvite, inviteToText } from './invite.js';
+import { initAuth } from './auth.js';
 import * as sink from './sink.js';
+import * as whack from './whack.js';
+import * as dodge from './dodge.js';
+import * as defend from './defend.js';
+import * as merge from './merge.js';
+import * as blast from './blast.js';
+import * as helix from './helix.js';
+import * as hop from './hop.js';
+import * as click from './click.js';
+import * as trap from './trap.js';
+
+const GAMES = { sink, whack, dodge, defend, merge, blast, helix, hop, click, trap };
 
 const $ = (id) => document.getElementById(id);
 const images = []; // 128x128 circle-cropped canvases, in memory only
 let spec = null;
 let game = null;
+let me = null; // { name, email } after sign-in; memory only
 
 async function cropFace(file) {
   const bmp = await createImageBitmap(file);
@@ -43,15 +58,22 @@ function attachImages(s) {
   return s;
 }
 
+// A dropped .ics (or any text file) lands in the text box; parsing happens here, in the browser.
+$('text').ondragover = (e) => e.preventDefault();
+$('text').ondrop = async (e) => {
+  const f = e.dataTransfer.files[0];
+  if (f) { e.preventDefault(); $('text').value = await f.text(); }
+};
+
 $('generate').onclick = async () => {
-  const text = $('text').value;
+  const text = inviteToText(parseInvite($('text').value), $('text').value); // names and text only, never emails
   $('err').textContent = 'Building...';
   let s;
   try {
     const r = await fetch('spec', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ text, imageCount: images.length }),
+      body: JSON.stringify({ text, imageCount: images.length, player: me?.name.split(' ')[0] }),
     });
     if (!r.ok) throw new Error(r.status);
     s = normalizeSpec((await r.json()).spec);
@@ -68,11 +90,23 @@ function start(s) {
   $('play').hidden = false;
   $('title').textContent = s.title;
   $('subtitle').textContent = s.subtitle;
-  $('levels').replaceChildren(...DIFFICULTIES.map((d) => {
+  const picker = (key, values) => values.map((v) => {
     const b = document.createElement('button');
-    b.textContent = d;
-    b.className = d === s.difficulty ? 'on' : '';
-    b.onclick = () => { spec.difficulty = d; start(spec); };
+    b.textContent = v;
+    b.className = v === s[key] ? 'on' : '';
+    b.onclick = () => { spec[key] = v; start(spec); };
+    return b;
+  });
+  $('levels').replaceChildren(...picker('difficulty', DIFFICULTIES));
+  $('games').replaceChildren(...picker('template', TEMPLATES).map((b) => {
+    const to = TEMPLATE_DEFAULTS[b.textContent];
+    const from = TEMPLATE_DEFAULTS[s.template];
+    b.onclick = () => { // a goal/subtitle the LLM did not customise follows the template
+      if (spec.goal.label === from.goal && spec.goal.sprite === from.sprite) spec.goal = { label: to.goal, sprite: to.sprite };
+      if (spec.subtitle === from.subtitle) spec.subtitle = to.subtitle;
+      spec.template = b.textContent;
+      start(spec);
+    };
     return b;
   }));
   play();
@@ -81,7 +115,7 @@ function start(s) {
 function play() {
   $('end').hidden = true;
   $('pause').textContent = 'Pause';
-  game = sink.init($('canvas'), {
+  game = GAMES[spec.template].init($('canvas'), {
     spec,
     images,
     onEnd: (r) => {
@@ -94,7 +128,7 @@ function play() {
 
 $('pause').onclick = () => { $('pause').textContent = game.togglePause() ? 'Resume' : 'Pause'; };
 $('again').onclick = play;
-$('remix').onclick = () => { sink.destroy(); history.replaceState(null, '', location.pathname); $('play').hidden = true; $('setup').hidden = false; };
+$('remix').onclick = () => { destroy(); history.replaceState(null, '', location.pathname); $('play').hidden = true; $('setup').hidden = false; };
 $('make').onclick = (e) => { e.preventDefault(); $('remix').click(); };
 $('share').onclick = async () => {
   const url = `${location.origin}${location.pathname}#s=${encodeSpec(spec)}`;
@@ -103,6 +137,13 @@ $('share').onclick = async () => {
 };
 // shortcut: placeholder address, set the real one before launch (GDD §9)
 $('report').href = 'mailto:report@meetingbreak.example?subject=Report%20a%20game';
+
+initAuth((user) => {
+  me = user;
+  $('who').textContent = user ? `Signed in as ${user.name}` : '';
+  $('signout').hidden = !user;
+  $('signin').hidden = !!user;
+});
 
 const m = /^#s=(.+)$/.exec(location.hash);
 const shared = m && decodeSpec(m[1]);

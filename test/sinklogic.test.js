@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizeSpec } from '../public/spec.js';
-import { createState, pickBall, flick, step, score, endMessage, W, H } from '../public/sinklogic.js';
+import { createState, pickBall, flick, step, score, W, H } from '../public/sinklogic.js';
+import { endMessage } from '../public/engine.js';
 
 const spec = (over = {}) => normalizeSpec({ actors: [{ label: 'A' }, { label: 'B' }], durationSec: 30, ...over });
 const mid = () => 0.5;

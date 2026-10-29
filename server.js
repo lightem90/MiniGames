@@ -53,9 +53,13 @@ export function createServer(opts = {}) {
         let body;
         try { body = JSON.parse(await readBody(req)); } catch { return send(400, { error: 'bad request' }); }
         const t0 = Date.now();
-        const { spec, source } = await generateSpec(body?.text, body?.imageCount, llm);
+        const { spec, source } = await generateSpec(body?.text, body?.imageCount, { ...llm, player: body?.player });
         console.log(JSON.stringify({ template: spec.template, source, ms: Date.now() - t0 }));
         return send(200, { spec, source });
+      }
+      if (req.method === 'GET' && url.pathname === '/config') {
+        // OAuth client IDs are public by design; the secrets stay with Google/Microsoft.
+        return send(200, { googleClientId: process.env.GOOGLE_CLIENT_ID || '', msClientId: process.env.MS_CLIENT_ID || '' });
       }
       if (req.method === 'GET') {
         const file = url.pathname === '/' ? 'index.html' : url.pathname.slice(1);

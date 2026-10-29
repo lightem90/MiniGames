@@ -1,20 +1,22 @@
 // Text -> GameSpec. The LLM only returns JSON; normalizeSpec() is the real gatekeeper (GDD §6, §8).
-import { normalizeSpec, fallbackSpec } from './public/spec.js';
+import { normalizeSpec, fallbackSpec, clean, TEMPLATES } from './public/spec.js';
 
 export const DEFAULT_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai';
 export const DEFAULT_MODEL = 'gemini-3.8-flash'; // model names change often: override with LLM_MODEL
 export const redactEmails = (s) => s.replace(/[^\s<>()"',;]+@[^\s<>()"',;]+/g, '[email]');
 
 const SYSTEM = `You turn a meeting description into a JSON GameSpec for a tiny, playful browser game. Reply with ONE JSON object and nothing else.
-Shape: {"version":1,"template":"sink","title":str,"subtitle":str,"difficulty":"easy|normal|hard","durationSec":30-90,"palette":"corporate-blue|sunset|mint|mono","actors":[{"label":str,"role":"enemy","sprite":"emoji:<one emoji>|text"}],"goal":{"label":str,"sprite":"emoji:<one emoji>"},"messages":{"start":str,"win":str,"lose":str}}
-Rules: max 8 actors, use attendee names or agenda items as actor labels. Longer meetings -> harder. Keep it light and screen-share safe: no insults, slurs, sexual content or violence; the goal is a bin, mute button or similar. Never invent personal details.`;
+Shape: {"version":1,"template":"${TEMPLATES.join('|')}","title":str,"subtitle":str,"difficulty":"easy|normal|hard","durationSec":30-90,"palette":"corporate-blue|sunset|mint|mono","actors":[{"label":str,"role":"enemy","sprite":"emoji:<one emoji>|text"}],"goal":{"label":str,"sprite":"emoji:<one emoji>"},"messages":{"start":str,"win":str,"lose":str}}
+Templates (vary your pick, match the mood): sink = flick the actors into the goal (a bin); whack = tap the actors as they pop up (goal = a mute button); dodge = the player drags the goal sprite (their avatar, e.g. a coffee) to dodge falling actors; defend = actors march across, the player places turrets (goal = a mute button or similar) to stop them; merge = drop actors into a box, two of a kind merge into the next actor (order actors small to big); blast = drag blocks onto a grid, full lines clear; helix = the player's avatar (goal) bounces down through gaps, must not land on an actor; hop = the avatar (goal) hops across roads where actors drive; click = tap the goal (a mute button) as fast as possible; trap = block hex cells to corner the first actor before it escapes.
+Rules: max 8 actors, use attendee names or agenda items as actor labels. If a player name is given, never use it as an actor. Longer meetings -> harder. Keep it light and screen-share safe: no insults, slurs, sexual content or violence. Never invent personal details.`;
 
 // Any OpenAI-compatible chat endpoint works (Gemini, DeepSeek, Groq, Ollama...): set baseUrl/model/apiKey.
 // No response_format on purpose: support varies by provider, and normalizeSpec() validates the output anyway.
 // fetchFn is injectable for tests. Never throws: any failure returns the local fallback.
-export async function generateSpec(text, imageCount, { apiKey, baseUrl = DEFAULT_BASE_URL, model = DEFAULT_MODEL, fetchFn = fetch } = {}) {
-  const clean = redactEmails(String(text ?? '')).slice(0, 4000);
-  if (!apiKey) return { spec: fallbackSpec(clean), source: 'fallback' };
+export async function generateSpec(text, imageCount, { apiKey, baseUrl = DEFAULT_BASE_URL, model = DEFAULT_MODEL, fetchFn = fetch, player } = {}) {
+  const prompt = redactEmails(String(text ?? '')).slice(0, 4000);
+  const who = clean(redactEmails(String(player ?? '')), 24); // signed-in first name, same hygiene as the text
+  if (!apiKey) return { spec: fallbackSpec(prompt), source: 'fallback' };
   try {
     const r = await fetchFn(baseUrl.replace(/\/$/, '') + '/chat/completions', {
       method: 'POST',
@@ -24,7 +26,7 @@ export async function generateSpec(text, imageCount, { apiKey, baseUrl = DEFAULT
         max_tokens: 2000, // headroom: "thinking" models spend output tokens before the JSON
         messages: [
           { role: 'system', content: SYSTEM },
-          { role: 'user', content: `${clean}\n\n(user uploaded ${Number(imageCount) || 0} images)` },
+          { role: 'user', content: `${prompt}\n\n(user uploaded ${Number(imageCount) || 0} images${who ? `; the player is ${who}` : ''})` },
         ],
       }),
       signal: AbortSignal.timeout(15000),
@@ -35,6 +37,6 @@ export async function generateSpec(text, imageCount, { apiKey, baseUrl = DEFAULT
     return { spec: normalizeSpec(JSON.parse(json)), source: 'llm' };
   } catch (err) {
     console.error('llm failed, using fallback:', err.message); // status/error only, never user text or the key
-    return { spec: fallbackSpec(clean), source: 'fallback' };
+    return { spec: fallbackSpec(prompt), source: 'fallback' };
   }
 }

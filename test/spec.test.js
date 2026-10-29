@@ -28,7 +28,7 @@ test('garbage input gives a playable default spec', () => {
 });
 
 test('unknown template falls back to sink, bad enums to defaults', () => {
-  const s = normalizeSpec({ template: 'whack', difficulty: 'insane', palette: 'neon', __proto__: { x: 1 } });
+  const s = normalizeSpec({ template: 'tetris', difficulty: 'insane', palette: 'neon', __proto__: { x: 1 } });
   assert.equal(s.template, 'sink');
   assert.equal(s.difficulty, 'normal');
   assert.equal(s.palette, 'corporate-blue');
@@ -76,8 +76,15 @@ test('fallbackSpec picks capitalised words as actors and the first line as title
   assert.deepEqual(s.actors.map((a) => a.label), ['Marco', 'Giulia']);
 });
 
+test('fallbackSpec picks a random template and the matching default goal', () => {
+  const s = fallbackSpec('x', () => 0.99);
+  assert.equal(s.template, 'trap');
+  assert.equal(s.goal.label, 'Block');
+  assert.equal(fallbackSpec('x', () => 0).template, 'sink');
+});
+
 test('fallbackSpec on empty text still returns a valid spec', () => {
-  const s = fallbackSpec('');
+  const s = fallbackSpec('', () => 0);
   assert.ok(s.actors.length >= 1);
   assert.equal(s.title, 'Meeting Survival');
 });

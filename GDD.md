@@ -22,8 +22,8 @@ Paste a meeting invite (or a sentence), optionally drop a photo, get a 30-second
 **Non-goals (v1)**
 - Not a game *creation* tool for creators (Ludo, Rosebud, Crayon already do that).
 - No LLM-generated game code. The LLM never writes JavaScript.
-- No accounts, no saved progress, no leaderboards across users.
-- No calendar/Teams/Zoom OAuth integration.
+- No saved progress, no leaderboards across users.
+- Sign-in (Google/Microsoft) exists since 2026-10-29 but is optional, browser-side and stateless: it only names the player. No calendar/Teams/Zoom data access yet.
 
 ## 3. Player and context
 
@@ -58,10 +58,17 @@ Each is a self-contained module exposing `init(canvas, params)` and `destroy()`.
 | `sink` | Flick balls into a hole/bin | drag + release | ball faces, hole label, background | colleagues → "Q4 Budget" bin |
 | `whack` | Pop targets before they vanish | click | target faces, hammer label | "Mute Marco" |
 | `dodge` | Move a dot, avoid falling items | drag | falling item sprites, player sprite | dodge "Action Items" |
+| `defend` | Place turrets, stop actors marching across | click | enemy faces, turret sprite | mute the stakeholders |
 | `catch` | Move a basket, catch good, avoid bad | drag | good/bad sprites, basket label | catch "Coffee", avoid "Follow-ups" |
 | `stack` | Tap to drop blocks, build a tower | click | block labels (agenda points), background | stack the agenda |
+| `merge` | Drop balls, two of a kind merge into the next actor (Suika) | drag + release | actors = sizes small→big | merge the attendees |
+| `blast` | Drag pieces onto an 8×8 grid, full lines clear (Block Blast) | drag | piece sprites | clear the agenda |
+| `helix` | Ball bounces down, slide the rings to fall through gaps (Helix Jump) | drag | player sprite, actors on the bad segments | don't land on Marco |
+| `hop` | Tap ahead to hop a lane, aside to step; actors drive across (Crossy Road) | click | player sprite, car sprites | cross the roadmap |
+| `click` | Tap the goal as fast as you can (clicker) | click | goal sprite, actor names | mute 100 times |
+| `trap` | Block hex cells, corner the first actor before it reaches the edge (Circle the Cat) | click | actor[0] sprite | trap Marco |
 
-MVP ships **`sink` only**. Others follow one per week once the pipeline works.
+MVP shipped `sink`; `whack`, `dodge` and `defend` followed (2026-10-29), then `merge`, `blast`, `helix`, `hop`, `click`, `trap` (2026-10-29, the simplest working version of each). The `goal` slot is the bin / the hammer / the player avatar / the turret respectively. The player can switch template with one tap, like difficulty.
 
 **Difficulty**: `easy | normal | hard` maps to speed, spawn rate and round length. The LLM picks it from meeting duration and tone; the player can override with one tap.
 
@@ -169,18 +176,18 @@ No analytics SDK in MVP; count events in the edge function and a `navigator.send
 ## 12. Roadmap
 
 **Week 1 — MVP (`sink` only)**
-- [ ] Static page: text box, image drop, "Generate" button
-- [ ] `/spec` edge function with schema validation and fallback
-- [ ] `sink` template, 3 difficulties, 60 s round, score
-- [ ] Share link via URL fragment
-- [ ] Privacy note, report mailto
+- [x] Static page: text box, image drop, "Generate" button
+- [x] `/spec` edge function with schema validation and fallback
+- [x] `sink` template, 3 difficulties, 60 s round, score
+- [x] Share link via URL fragment
+- [x] Privacy note, report mailto
 - [ ] Deploy
 
 **Week 2–3**
-- [ ] `.ics` / invite-text parser
+- [x] `.ics` / invite-text parser
 - [ ] Circle-crop + background removal for uploaded faces
-- [ ] Templates `whack`, `dodge`
-- [ ] Mobile layout check
+- [x] Templates `whack`, `dodge`
+- [x] Mobile layout check
 
 **Week 4+**
 - [ ] Templates `catch`, `stack`

@@ -1,8 +1,22 @@
 // GameSpec: the only contract between the LLM and the engine (GDD §6).
 // Shared by browser and server. Every input is untrusted: normalizeSpec never throws
 // and always returns a playable spec.
+import { parseInvite } from './invite.js';
 
-export const TEMPLATES = ['sink'];
+export const TEMPLATES = ['sink', 'whack', 'dodge', 'defend', 'merge', 'blast', 'helix', 'hop', 'click', 'trap'];
+// What the `goal` slot means per template, and its default when the LLM gives none.
+export const TEMPLATE_DEFAULTS = {
+  sink: { subtitle: 'Sink everything before the sync ends', goal: 'Trash', sprite: 'emoji:🗑️' },
+  whack: { subtitle: 'Mute them before they finish the sentence', goal: 'Mute', sprite: 'emoji:🔇' },
+  dodge: { subtitle: 'Dodge the follow-ups until the call ends', goal: 'You', sprite: 'emoji:☕' },
+  defend: { subtitle: 'Hold the line until the meeting ends', goal: 'Mute', sprite: 'emoji:🔇' },
+  merge: { subtitle: 'Merge the attendees until the sync ends', goal: 'Box', sprite: 'emoji:📦' },
+  blast: { subtitle: 'Clear the agenda, line by line', goal: 'Grid', sprite: 'emoji:🧱' },
+  helix: { subtitle: 'Fall through the gaps, never onto a stakeholder', goal: 'You', sprite: 'emoji:☕' },
+  hop: { subtitle: 'Cross the roadmap without getting run over', goal: 'You', sprite: 'emoji:☕' },
+  click: { subtitle: 'Mute as fast as you can', goal: 'Mute', sprite: 'emoji:🔇' },
+  trap: { subtitle: 'Corner them before they escape the call', goal: 'Block', sprite: 'emoji:🚧' },
+};
 export const DIFFICULTIES = ['easy', 'normal', 'hard'];
 export const PALETTES = {
   'corporate-blue': { bg: '#10243f', fg: '#e8f0ff', accent: '#4da3ff', goal: '#1d3b66' },
@@ -56,17 +70,19 @@ export function normalizeSpec(raw) {
   const goal = r.goal && typeof r.goal === 'object' ? r.goal : {};
   const m = r.messages && typeof r.messages === 'object' ? r.messages : {};
   const dur = Number(r.durationSec);
+  const template = TEMPLATES.includes(r.template) ? r.template : 'sink';
+  const td = TEMPLATE_DEFAULTS[template];
 
   return {
     version: 1,
-    template: TEMPLATES.includes(r.template) ? r.template : 'sink',
+    template,
     title: clean(r.title, 60, 'Meeting Survival'),
-    subtitle: clean(r.subtitle, 80, 'Sink everything before the sync ends'),
+    subtitle: clean(r.subtitle, 80, td.subtitle),
     difficulty: DIFFICULTIES.includes(r.difficulty) ? r.difficulty : 'normal',
     durationSec: Number.isFinite(dur) ? Math.min(90, Math.max(30, Math.round(dur))) : 60,
     palette: Object.hasOwn(PALETTES, r.palette) ? r.palette : 'corporate-blue',
     actors,
-    goal: { label: clean(goal.label, 24, 'Trash'), sprite: cleanSprite(goal.sprite) === 'text' ? 'emoji:🗑️' : cleanSprite(goal.sprite) },
+    goal: { label: clean(goal.label, 24, td.goal), sprite: cleanSprite(goal.sprite) === 'text' ? td.sprite : cleanSprite(goal.sprite) },
     messages: {
       start: clean(m.start, 80, 'The meeting could have been an email.'),
       win: clean(m.win, 80, "Meeting adjourned. You're free."),
@@ -75,14 +91,23 @@ export function normalizeSpec(raw) {
   };
 }
 
-// LLM-free spec from raw text, used when no LLM is configured or the call fails.
-// shortcut: actors = capitalised words, which misses lowercase names; the LLM does this better.
-export function fallbackSpec(text) {
+// LLM-free spec from raw text, used when no LLM is configured or the call fails. Template is random.
+// Invite names and duration are used when present (GDD §7: longer meeting -> harder, longer round).
+// shortcut: plain prose actors = capitalised words, which misses lowercase names; the LLM does this better.
+export function fallbackSpec(text, rng = Math.random) {
   const t = typeof text === 'string' ? text : '';
-  const words = t.match(/\p{Lu}[\p{L}'-]{2,}/gu) || [];
-  const actors = [...new Set(words.slice(1))].slice(0, MAX_ACTORS).map((label) => ({ label, role: 'enemy', sprite: 'text' }));
-  const title = t.split(/\r?\n/)[0].trim();
-  return normalizeSpec({ title: title || undefined, actors });
+  const inv = parseInvite(t);
+  const words = inv.names.length ? inv.names : (t.match(/\p{Lu}[\p{L}'-]{2,}/gu) || []).slice(1);
+  const actors = [...new Set(words)].slice(0, MAX_ACTORS).map((label) => ({ label: label.split(' ')[0], role: 'enemy', sprite: 'text' }));
+  const title = inv.title || t.split(/\r?\n/)[0].trim();
+  const min = inv.durationMin;
+  return normalizeSpec({
+    template: TEMPLATES[Math.floor(rng() * TEMPLATES.length)],
+    title: title || undefined,
+    actors,
+    difficulty: min ? (min >= 60 ? 'hard' : min >= 30 ? 'normal' : 'easy') : undefined,
+    durationSec: min || undefined,
+  });
 }
 
 // Share links carry the spec in the URL fragment. Uploaded images never go in (GDD §7, §9).
@@ -93,13 +118,16 @@ export function encodeSpec(spec) {
   return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
+// base64url -> UTF-8 string. Throws on bad input.
+export function decodeB64url(s) {
+  const bin = atob(String(s).replace(/-/g, '+').replace(/_/g, '/'));
+  return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+}
+
 // Returns a valid spec, or null when the fragment is not decodable.
 export function decodeSpec(s) {
   try {
-    const b64 = String(s).replace(/-/g, '+').replace(/_/g, '/');
-    const bin = atob(b64);
-    const json = new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
-    return normalizeSpec(JSON.parse(json));
+    return normalizeSpec(JSON.parse(decodeB64url(s)));
   } catch {
     return null;
   }

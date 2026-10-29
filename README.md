@@ -6,6 +6,7 @@ Ten templates, switchable with one tap in the game: `sink` (flick them into the 
 `dodge` (drag your avatar, dodge the follow-ups), `defend` (place turrets, stop the march), `merge` (drop and merge, Suika-style),
 `blast` (drag blocks onto a grid, clear lines), `helix` (slide the rings, fall through the gaps), `hop` (tap to cross the roads),
 `click` (tap the mute button as fast as you can), `trap` (block hex cells, corner the escapee). Uploaded faces become the actors.
+"How it works" on the first screen (or `?` next to Pause) runs a guided tour of every control, including each game's rules (`public/tour.js`).
 
 ## Run
 

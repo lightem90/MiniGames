@@ -3,6 +3,7 @@ import { normalizeSpec, fallbackSpec, encodeSpec, decodeSpec, DIFFICULTIES, TEMP
 import { destroy } from './engine.js';
 import { parseInvite, inviteToText } from './invite.js';
 import { initAuth } from './auth.js';
+import { startTour } from './tour.js';
 import * as sink from './sink.js';
 import * as whack from './whack.js';
 import * as dodge from './dodge.js';
@@ -147,6 +148,26 @@ $('share').onclick = async () => {
 };
 // shortcut: placeholder address, set the real one before launch (GDD §9)
 $('report').href = 'mailto:report@meetingbreak.example?subject=Report%20a%20game';
+
+// Tour: walks the setup screen, then a paused demo game (or the running game, paused) and its controls.
+const pause = () => { if ($('pause').textContent === 'Pause') $('pause').click(); };
+function tour(from) {
+  let started = !$('play').hidden;
+  const demo = !started; // no game yet: the tour starts one and leaves it at the end
+  startTour({
+    from,
+    template: () => spec.template,
+    show(screen) {
+      if (screen === 'play' && !started) { started = true; start(attachImages(fallbackSpec('Budget review\nMarco, Giulia and the Action Items'))); }
+      if (screen === 'play') pause();
+      $('setup').hidden = screen !== 'setup';
+      $('play').hidden = screen !== 'play';
+    },
+    onEnd() { if (demo) $('remix').click(); else { $('setup').hidden = true; $('play').hidden = false; } },
+  });
+}
+$('howto').onclick = () => tour('setup');
+$('help').onclick = () => tour('play');
 
 initAuth((user) => {
   me = user;

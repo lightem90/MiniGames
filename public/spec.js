@@ -26,7 +26,7 @@ export const PALETTES = {
 };
 
 export const MAX_ACTORS = 8;
-const DEFAULT_ACTORS = ['Slides', 'Action Items', 'Reply All'];
+const DEFAULT_ACTORS = [['Slides', 'emoji:📊'], ['Action Items', 'emoji:📝'], ['Reply All', 'emoji:📧']];
 // shortcut: tiny second-net blocklist, extend or swap for a real moderation list before public launch
 const BLOCKLIST = /\b(fuck\w*|shit\w*|cazzo|merda|stronz\w*|bastard\w*)\b/gi;
 
@@ -65,7 +65,7 @@ export function normalizeSpec(raw) {
       role: 'enemy',
       sprite: cleanSprite(a.sprite),
     }));
-  if (!actors.length) actors.push(...DEFAULT_ACTORS.map((label) => ({ label, role: 'enemy', sprite: 'text' })));
+  if (!actors.length) actors.push(...DEFAULT_ACTORS.map(([label, sprite]) => ({ label, role: 'enemy', sprite })));
 
   const goal = r.goal && typeof r.goal === 'object' ? r.goal : {};
   const m = r.messages && typeof r.messages === 'object' ? r.messages : {};

@@ -33,10 +33,10 @@ async function cropFace(file) {
   return c;
 }
 
-$('files').onchange = async (e) => {
-  images.length = 0;
-  $('thumbs').replaceChildren();
-  for (const f of [...e.target.files].slice(0, 5)) {
+// Picked or pasted images join the list, up to 5. Still memory only.
+async function addImages(files) {
+  for (const f of [...files]) {
+    if (images.length >= 5) break;
     try {
       const c = await cropFace(f);
       images.push(c);
@@ -45,6 +45,14 @@ $('files').onchange = async (e) => {
       $('thumbs').append(img);
     } catch { /* not an image: skip it */ }
   }
+}
+
+$('files').onchange = (e) => addImages(e.target.files);
+// Ctrl+V a screenshot (Win+Shift+S, Cmd+Shift+4) anywhere on the setup screen; pasting text into the box stays as it is.
+document.onpaste = (e) => {
+  if ($('setup').hidden || !e.clipboardData.files.length) return;
+  e.preventDefault();
+  addImages(e.clipboardData.files);
 };
 
 // Give uploaded images to actors that have no image yet, in order.
@@ -58,7 +66,9 @@ function attachImages(s) {
   return s;
 }
 
-// A dropped .ics (or any text file) lands in the text box; parsing happens here, in the browser.
+// A picked or dropped .ics (or any text file) lands in the text box; parsing happens here, in the browser.
+// Dropping straight from Outlook gives the browser no readable file, hence the picker.
+$('ics').onchange = async (e) => { if (e.target.files[0]) $('text').value = await e.target.files[0].text(); };
 $('text').ondragover = (e) => e.preventDefault();
 $('text').ondrop = async (e) => {
   const f = e.dataTransfer.files[0];

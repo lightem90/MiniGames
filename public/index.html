@@ -12,7 +12,10 @@
     <h1>MeetingBreak</h1>
     <p class="muted">Paste your meeting invite, drop the .ics, or just describe it. Get a 60-second game about it.</p>
     <textarea id="text" rows="6" maxlength="4000" placeholder="Budget review, 14 people, Marco talks too much"></textarea>
-    <label class="file">Faces / logos (optional, up to 5)
+    <label class="file">Invite file (.ics, optional)
+      <input id="ics" type="file" accept=".ics,text/calendar">
+    </label>
+    <label class="file">Faces / logos (optional, up to 5, or paste a screenshot with Ctrl+V)
       <input id="files" type="file" accept="image/*" multiple>
     </label>
     <p id="thumbs"></p>

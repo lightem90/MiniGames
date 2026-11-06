@@ -8,6 +8,8 @@ Eleven templates, switchable with one tap in the game: `sink` (flick them into t
 `click` (tap the mute button as fast as you can), `trap` (block hex cells, corner the escapee). Uploaded faces become the actors.
 "How it works" on the first screen (or `?` next to Pause) runs a guided tour of every control, including each game's rules (`public/tour.js`).
 
+English and Italian: the page follows the browser language, and the LLM writes the game texts in it too. All UI strings are in `public/i18n.js`.
+
 ## Run
 
 ```
@@ -41,6 +43,10 @@ tells the game who the player is (so you are never a target). It is the hook for
 
 Uploaded images never leave the browser and are not in share links. Only the typed text (plus your first name, if signed in) is sent to the LLM, with email
 addresses removed. Nothing is stored. Note: free LLM tiers (for example Gemini's) may use prompts to improve their products.
+
+## Add your own game
+
+Pull requests with new games are welcome. The rules and the steps are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Before a public launch
 

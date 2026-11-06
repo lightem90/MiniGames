@@ -71,7 +71,7 @@ test('generateSpec: LLM junk, HTTP errors and network errors all fall back', asy
 test('generateSpec: LLM output is validated, not trusted', async () => {
   const fetchFn = async () => ({ ok: true, json: async () => ({ choices: [{ message: { content: '{"template":"evil","title":"<b>x</b>","durationSec":99999}' } }] }) });
   const { spec } = await generateSpec('x', 0, { apiKey: 'k', fetchFn });
-  assert.equal(spec.template, 'sink');
+  assert.ok(TEMPLATES.includes(spec.template)); // 'evil' is ignored: the server's draw is used
   assert.ok(!spec.title.includes('<'));
   assert.equal(spec.durationSec, 90);
 });
@@ -116,4 +116,28 @@ test('rate limit: the 21st request in a minute gets 429', async () => {
   const codes = [];
   for (let i = 0; i < 25; i++) codes.push((await post({ text: 'x' })).status);
   assert.ok(codes.includes(429));
+});
+
+test('generateSpec draws a random template, never the previous one, and the LLM cannot override it', async () => {
+  let sent;
+  const fetchFn = async (_u, o) => { sent = JSON.parse(o.body); return { ok: true, json: async () => ({ choices: [{ message: { content: '{"template":"sink","title":"x"}' } }] }) }; };
+  const { spec } = await generateSpec('Marco', 0, { apiKey: 'k', fetchFn, previous: 'sink', rng: () => 0 });
+  const expected = TEMPLATES.filter((t) => t !== 'sink')[0];
+  assert.equal(spec.template, expected);
+  assert.ok(sent.messages[1].content.includes(`template: ${expected}`));
+  for (let i = 0; i < 50; i++) assert.notEqual((await generateSpec('x', 0, { previous: 'drive' })).spec.template, 'drive');
+});
+
+test('the prompt asks for a kind lose message and a plain calm line', async () => {
+  let sent;
+  await generateSpec('x', 0, { apiKey: 'k', fetchFn: async (_u, o) => { sent = JSON.parse(o.body); return { ok: false, status: 500 }; } });
+  assert.ok(sent.messages[0].content.includes('never mocks'));
+  assert.ok(sent.messages[0].content.includes('messages.calm'));
+});
+
+test('the server serves the good-news list as JSON', async () => {
+  const r = await fetch(base + '/good-news.json');
+  assert.equal(r.status, 200);
+  assert.match(r.headers.get('content-type'), /application\/json/);
+  assert.ok(Array.isArray(await r.json()));
 });

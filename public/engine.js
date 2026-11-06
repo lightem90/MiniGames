@@ -187,6 +187,19 @@ export function run(canvas, { spec, images = [], onEnd = () => {} }, game) {
   let raf = 0;
   let endAt = 0;
   let shown = game.score(state), pop = 0;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // after the round: 24 dots rising slowly in the palette colours, like dust in light (SPEC-relief 1.2)
+  const dots = Array.from({ length: 24 }, (_, i) => ({ x: Math.random() * W, y: Math.random() * H, r: 2 + Math.random() * 2, v: 6 + Math.random() * 8, a: 0.25 + Math.random() * 0.25, c: pal.colors[i % pal.colors.length] }));
+  function ambient(dt) {
+    ctx.drawImage(bg, 0, 0, W, H);
+    for (const d of dots) {
+      d.y -= d.v * dt;
+      if (d.y < -d.r) { d.y = H + d.r; d.x = Math.random() * W; }
+      ctx.globalAlpha = d.a; ctx.fillStyle = d.c;
+      ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, 7); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
 
   const pos = (e) => {
     const r = canvas.getBoundingClientRect();
@@ -224,6 +237,11 @@ export function run(canvas, { spec, images = [], onEnd = () => {} }, game) {
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000); // clamp so a background tab can't jump the sim
     last = now;
+    if (endAt && (game.calm || now - endAt > END_LINGER * 1000)) {
+      ambient(dt);
+      if (!reduced) raf = requestAnimationFrame(frame); // reduced motion: one still frame
+      return;
+    }
     if (!paused && !endAt) {
       if (game.keys) game.keys(state, keys);
       game.step(state, dt);
@@ -243,6 +261,22 @@ export function run(canvas, { spec, images = [], onEnd = () => {} }, game) {
     ctx.restore();
     fx.drawFlash();
 
+    if (!game.calm) hud();
+    if (paused) {
+      ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(0, 0, W, H);
+      label(ctx, pal, 'PAUSED', W / 2, H / 2, 44);
+    }
+    if (state.status !== 'playing' && !endAt) {
+      endAt = now;
+      if (!game.calm) { if (state.status === 'won') fx.confetti(); else { fx.shake(8); fx.flash('#ff3d5a', 0.3); } } // calm = breathing, not a match
+      onEnd({ status: state.status, score: sc, message: endMessage(spec, state) });
+    }
+    if (endAt && !game.calm) banner(now);
+    raf = requestAnimationFrame(frame);
+  }
+
+  function hud() {
+    const sc = shown;
     pill(ctx, game.hud(state), 8, 8, 'left');
     const sec = Math.ceil(state.timeLeft);
     const hurry = sec <= 10 && !endAt;
@@ -251,30 +285,19 @@ export function run(canvas, { spec, images = [], onEnd = () => {} }, game) {
     ctx.translate(W - 16 - tw, 21); ctx.scale(1 + pop * 0.25, 1 + pop * 0.25);
     pill(ctx, `⭐ ${sc}`, 0, -13, 'right', 'rgba(0,0,0,0.3)');
     ctx.restore();
+  }
 
-    if (paused) {
-      ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(0, 0, W, H);
-      label(ctx, pal, 'PAUSED', W / 2, H / 2, 44);
-    }
-    if (state.status !== 'playing' && !endAt) {
-      endAt = now;
-      if (state.status === 'won') fx.confetti(); else { fx.shake(8); fx.flash('#ff3d5a', 0.3); }
-      onEnd({ status: state.status, score: sc, message: endMessage(spec, state) });
-    }
-    if (endAt) {
-      const p = Math.min(1, (now - endAt) / 300);
-      const s = 1 + 2.7 * (p - 1) ** 3 + 1.7 * (p - 1) ** 2; // ease-out-back: overshoots, then settles
-      ctx.fillStyle = `rgba(0,0,0,${0.25 * p})`; ctx.fillRect(0, 0, W, H);
-      ctx.save();
-      ctx.translate(W / 2, H / 2); ctx.rotate(-0.05); ctx.scale(s, s);
-      ctx.fillStyle = state.status === 'won' ? '#2ed58f' : '#ff4d6d';
-      rr(ctx, -140, -38, 280, 76, 22); ctx.fill();
-      ctx.lineWidth = 5; ctx.strokeStyle = '#fff'; ctx.stroke();
-      label(ctx, pal, state.status === 'won' ? 'YOU WIN!' : 'GAME OVER', 0, 2, 40);
-      ctx.restore();
-      if (now - endAt > END_LINGER * 1000) return;
-    }
-    raf = requestAnimationFrame(frame);
+  function banner(now) {
+    const p = Math.min(1, (now - endAt) / 300);
+    const s = 1 + 2.7 * (p - 1) ** 3 + 1.7 * (p - 1) ** 2; // ease-out-back: overshoots, then settles
+    ctx.fillStyle = `rgba(0,0,0,${0.25 * p})`; ctx.fillRect(0, 0, W, H);
+    ctx.save();
+    ctx.translate(W / 2, H / 2); ctx.rotate(-0.05); ctx.scale(s, s);
+    ctx.fillStyle = state.status === 'won' ? '#2ed58f' : '#ff4d6d';
+    rr(ctx, -140, -38, 280, 76, 22); ctx.fill();
+    ctx.lineWidth = 5; ctx.strokeStyle = '#fff'; ctx.stroke();
+    label(ctx, pal, state.status === 'won' ? 'YOU WIN!' : 'GAME OVER', 0, 2, 40);
+    ctx.restore();
   }
   raf = requestAnimationFrame(frame);
 

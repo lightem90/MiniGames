@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { generateSpec } from './llm.js';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), 'public');
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.woff2': 'font/woff2', '.json': 'application/json' };
 const MAX_BODY = 8 * 1024;
 const LIMIT = 20; // requests per IP per minute
 // shortcut: in-memory limiter, per process only; use the edge platform's limiter when deployed
@@ -53,7 +53,7 @@ export function createServer(opts = {}) {
         let body;
         try { body = JSON.parse(await readBody(req)); } catch { return send(400, { error: 'bad request' }); }
         const t0 = Date.now();
-        const { spec, source } = await generateSpec(body?.text, body?.imageCount, { ...llm, player: body?.player });
+        const { spec, source } = await generateSpec(body?.text, body?.imageCount, { ...llm, player: body?.player, previous: body?.previous });
         console.log(JSON.stringify({ template: spec.template, source, ms: Date.now() - t0 }));
         return send(200, { spec, source });
       }

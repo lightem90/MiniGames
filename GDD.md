@@ -95,7 +95,8 @@ The LLM outputs *only* this JSON. The client validates it against a JSON Schema 
   "messages": {
     "start": "The meeting could have been an email.",
     "win": "Meeting adjourned. You're free.",
-    "lose": "Let's take this offline."
+    "lose": "Let's take this offline.",
+    "calm": "Take a slow breath before the next call."
   }
 }
 ```
@@ -103,6 +104,7 @@ The LLM outputs *only* this JSON. The client validates it against a JSON Schema 
 Rules:
 - `sprite` is one of `img:<index>` (user upload), `emoji:<char>`, or `text` (label drawn on a circle).
 - Max 8 actors. Extra attendees are dropped, not merged.
+- `messages.calm` is optional (≤ 120 chars): one kind closing line for the end screen, never a fact (SPEC-relief §3).
 - Strings are length-capped and sanitised client-side (no HTML).
 - The LLM never sees image bytes — only `"user uploaded 2 images"`. Images stay in the browser.
 

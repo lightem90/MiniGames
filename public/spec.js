@@ -88,7 +88,8 @@ export function normalizeSpec(raw) {
     messages: {
       start: clean(m.start, 80, 'The meeting could have been an email.'),
       win: clean(m.win, 80, "Meeting adjourned. You're free."),
-      lose: clean(m.lose, 80, "Let's take this offline."),
+      lose: clean(m.lose, 80, "That's enough for today. The meeting will end."),
+      calm: clean(m.calm, 120, ''), // optional kind closing line, shown on the end screen
     },
   };
 }
@@ -96,7 +97,13 @@ export function normalizeSpec(raw) {
 // LLM-free spec from raw text, used when no LLM is configured or the call fails. Template is random.
 // Invite names and duration are used when present (GDD §7: longer meeting -> harder, longer round).
 // shortcut: plain prose actors = capitalised words, which misses lowercase names; the LLM does this better.
-export function fallbackSpec(text, rng = Math.random) {
+// A random template, never `exclude` (the one just played), so every new game is a different one.
+export function pickTemplate(exclude, rng = Math.random) {
+  const ts = TEMPLATES.filter((t) => t !== exclude);
+  return ts[Math.floor(rng() * ts.length)];
+}
+
+export function fallbackSpec(text, rng = Math.random, template = pickTemplate(undefined, rng)) {
   const t = typeof text === 'string' ? text : '';
   const inv = parseInvite(t);
   const words = inv.names.length ? inv.names : (t.match(/\p{Lu}[\p{L}'-]{2,}/gu) || []).slice(1);
@@ -104,7 +111,7 @@ export function fallbackSpec(text, rng = Math.random) {
   const title = inv.title || t.split(/\r?\n/)[0].trim();
   const min = inv.durationMin;
   return normalizeSpec({
-    template: TEMPLATES[Math.floor(rng() * TEMPLATES.length)],
+    template,
     title: title || undefined,
     actors,
     difficulty: min ? (min >= 60 ? 'hard' : min >= 30 ? 'normal' : 'easy') : undefined,

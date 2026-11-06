@@ -18,11 +18,11 @@ export const CONTROLS = {
 // target: element id. screen: 'setup' | 'play'. optional: skipped when the element is hidden. reveal: unhide it for this step.
 export const STEPS = [
   { screen: 'setup', target: 'text', title: 'Describe the meeting',
-    text: 'Type anything ("budget review, 14 people, Marco talks too much") or paste the invite text straight from your calendar. Attendee names are picked up; email addresses are removed before anything leaves the browser.' },
+    text: 'Type anything ("budget review, 14 people, Marco talks too much") or paste the invite text straight from Teams, Outlook or Google Calendar ("Where do I find my invite?" shows how). Attendee names are picked up; email addresses are removed before anything leaves the browser.' },
   { screen: 'setup', target: 'ics', title: 'Or pick the .ics file',
     text: 'The invite file is parsed here in the browser and lands in the text box. You can also drag any text file onto the box.' },
-  { screen: 'setup', target: 'files', title: 'Faces and logos',
-    text: 'Up to 5 images become the balls, targets and cars of the game. Ctrl+V pastes a screenshot. Images never leave this browser and are not put in share links.' },
+  { screen: 'setup', target: 'faces', title: 'Faces: the fun part',
+    text: 'Snip a colleague\'s face from the call (Win+Shift+S, on a Mac Cmd+Shift+Ctrl+4) and press Ctrl+V anywhere on this page. Or drop or pick photos. Up to 5 faces become the balls, targets and cars of the game. Images never leave this browser and are not put in share links.' },
   { screen: 'setup', target: 'signin', title: 'Sign in (optional)', optional: true,
     text: 'Only tells the game your name, so you are never one of the targets. Nothing is stored, no session.' },
   { screen: 'setup', target: 'generate', title: 'Generate',
@@ -36,7 +36,7 @@ export const STEPS = [
   { screen: 'play', target: 'games', title: 'Eleven games, one tap',
     text: 'Same invite, different game. Switching restarts the round.\n\n' + Object.entries(CONTROLS).map(([k, v]) => `${k}: ${v}`).join('\n') },
   { screen: 'play', target: 'end', title: 'When the round ends', reveal: true,
-    text: 'Play again repeats the same game. Copy link gives anyone the same game (without your images). Remix goes back to the text so you can change it and regenerate.' },
+    text: 'Play again repeats the same game. Copy link gives anyone the same game (without your images). Remix goes back to the text so you can change it and regenerate. Breathe shows a slow breathing circle for about 40 seconds; tap anywhere to stop it.' },
   { screen: 'play', target: 'report', title: 'Shared games',
     text: 'On a game someone shared with you, "Make your own" starts yours. "Report" emails us if a game crosses the line.' },
 ];

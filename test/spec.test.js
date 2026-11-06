@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeSpec, fallbackSpec, encodeSpec, decodeSpec, cleanSprite, MAX_ACTORS } from '../public/spec.js';
+import { normalizeSpec, fallbackSpec, encodeSpec, decodeSpec, cleanSprite, MAX_ACTORS, PALETTES } from '../public/spec.js';
 
 const GDD_EXAMPLE = {
   version: 1, template: 'sink', title: 'Q4 Budget Alignment Survival', subtitle: 'Sink every stakeholder before the sync ends',
@@ -11,7 +11,7 @@ const GDD_EXAMPLE = {
     { label: 'Action Items', role: 'enemy', sprite: 'text' },
   ],
   goal: { label: 'Trash', sprite: 'emoji:🗑️' },
-  messages: { start: 'The meeting could have been an email.', win: "Meeting adjourned. You're free.", lose: "Let's take this offline." },
+  messages: { start: 'The meeting could have been an email.', win: "Meeting adjourned. You're free.", lose: "Let's take this offline.", calm: 'Take a slow breath before the next call.' },
 };
 
 test('the GDD example spec passes through unchanged', () => {
@@ -110,4 +110,21 @@ test('decodeSpec returns null on garbage and re-validates tampered links', () =>
   const s = decodeSpec(evil);
   assert.ok(!s.title.includes('<'));
   assert.equal(s.durationSec, 90);
+});
+
+// WCAG relative luminance / contrast ratio
+const lum = (hex) => {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const contrast = (a, b) => (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05);
+
+test('every palette: white game text on its ink outline has AAA contrast (>= 7:1)', () => {
+  for (const [name, p] of Object.entries(PALETTES)) assert.ok(contrast(p.ink, '#ffffff') >= 7, `${name} ${contrast(p.ink, '#ffffff').toFixed(2)}`);
+});
+
+test('messages.calm is optional, capped at 120 chars and survives a share link', () => {
+  assert.equal(normalizeSpec({}).messages.calm, '');
+  assert.equal(normalizeSpec({ messages: { calm: 'x'.repeat(300) } }).messages.calm.length, 120);
+  assert.equal(decodeSpec(encodeSpec(normalizeSpec({ messages: { calm: 'Take a slow breath.' } }))).messages.calm, 'Take a slow breath.');
 });

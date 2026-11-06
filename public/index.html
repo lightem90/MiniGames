@@ -10,15 +10,26 @@
 <main>
   <section id="setup">
     <h1>MeetingBreak</h1>
-    <p class="muted">Paste your meeting invite, drop the .ics, or just describe it. Get a 60-second game about it.</p>
-    <textarea id="text" rows="6" maxlength="4000" placeholder="Budget review, 14 people, Marco talks too much"></textarea>
+    <p class="muted">Paste your meeting invite (or just describe it), add your colleagues' faces, get a 60-second game about it.</p>
+    <label for="text" id="text-label">📋 Paste your meeting invitation here</label>
+    <span class="small muted" id="text-hint">Copy it from Teams, Outlook or Google Calendar, or just describe the meeting in a few words.</span>
+    <textarea id="text" rows="6" maxlength="4000" aria-describedby="text-hint" placeholder="Paste the invitation: title, time and attendees...&#10;&#10;or describe it: Budget review, 14 people, Marco talks too much"></textarea>
+    <details class="small" id="where">
+      <summary>Where do I find my invite?</summary>
+      <p><b>Teams / Outlook:</b> open the meeting, click in the details, Ctrl+A, Ctrl+C, paste here. Classic Outlook can also do File &rarr; Save As &rarr; .ics.</p>
+      <p><b>Google Calendar / Meet:</b> open the event, select the title, time and guest list, copy, paste here. The invite e-mail in Gmail also has an <i>invite.ics</i> attachment.</p>
+      <p>Names and duration are all the game needs. E-mail addresses are removed before anything leaves this browser.</p>
+    </details>
     <label class="file">Invite file (.ics, optional)
       <input id="ics" type="file" accept=".ics,text/calendar">
     </label>
-    <label class="file">Faces / logos (optional, up to 5, or paste a screenshot with Ctrl+V)
-      <input id="files" type="file" accept="image/*" multiple>
-    </label>
-    <p id="thumbs"></p>
+    <div id="faces" role="button" tabindex="0" aria-describedby="faces-how">
+      <div id="thumbs" aria-live="polite"><span class="slot"></span><span class="slot"></span><span class="slot"></span><span class="slot"></span><span class="slot"></span></div>
+      <strong id="faces-title">📸 Put your colleagues in the game</strong>
+      <span id="faces-how"><kbd>Win</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> a face from the call, then <kbd>Ctrl</kbd>+<kbd>V</kbd> here</span>
+      <span class="small muted">or drop photos here / click to pick, up to 5. They never leave this browser.</span>
+    </div>
+    <input id="files" type="file" accept="image/*" multiple hidden>
     <button id="generate">Generate game</button>
     <button id="howto">How it works</button>
     <p id="err" class="muted" role="status"></p>
@@ -44,10 +55,13 @@
     <div id="end" hidden>
       <p id="endmsg"></p>
       <p id="endscore"></p>
+      <p id="calm" hidden></p>
+      <p id="news" class="muted small" hidden></p>
       <div class="row">
         <button id="again">Play again</button>
         <button id="share">Copy link</button>
         <button id="remix">Remix</button>
+        <button id="breathe" aria-label="Breathe: short breathing exercise, about 40 seconds">Breathe</button>
       </div>
     </div>
     <p class="small"><a id="make" href="#" >Make your own</a> · <a id="report" href="#">Report</a></p>

@@ -1,5 +1,5 @@
 // UI glue: input -> /spec -> template -> share. Kept dumb on purpose; the logic lives in the tested modules.
-import { normalizeSpec, fallbackSpec, encodeSpec, decodeSpec, DIFFICULTIES, TEMPLATES, TEMPLATE_DEFAULTS } from './spec.js';
+import { PALETTES, normalizeSpec, fallbackSpec, pickTemplate, encodeSpec, decodeSpec, DIFFICULTIES, TEMPLATES, TEMPLATE_DEFAULTS } from './spec.js';
 import { destroy } from './engine.js';
 import { parseInvite, inviteToText } from './invite.js';
 import { initAuth } from './auth.js';
@@ -15,6 +15,8 @@ import * as helix from './helix.js';
 import * as hop from './hop.js';
 import * as click from './click.js';
 import * as trap from './trap.js';
+import * as breathe from './breathe.js';
+import { pickNews } from './news.js';
 
 const GAMES = { sink, whack, dodge, drive, defend, merge, blast, helix, hop, click, trap };
 
@@ -44,13 +46,25 @@ async function addImages(files) {
       images.push(c);
       const img = new Image();
       img.src = c.toDataURL();
-      $('thumbs').append(img);
+      img.alt = `face ${images.length}`;
+      img.className = 'slot';
+      $('thumbs').children[images.length - 1].replaceWith(img); // fills the next empty circle
+      $('faces-title').textContent = images.length < 5 ? `📸 ${images.length} in the game, add another` : '📸 5 in the game, ready!';
+      $('faces').classList.remove('got'); void $('faces').offsetWidth; $('faces').classList.add('got'); // replay the pop
     } catch { /* not an image: skip it */ }
   }
 }
 
 $('files').onchange = (e) => addImages(e.target.files);
-// Ctrl+V a screenshot (Win+Shift+S, Cmd+Shift+4) anywhere on the setup screen; pasting text into the box stays as it is.
+// The faces box: click / Enter to pick, drop images on it; the shortcut shown matches the device.
+$('faces').onclick = () => $('files').click();
+$('faces').onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('files').click(); } };
+$('faces').ondragover = (e) => { e.preventDefault(); $('faces').classList.add('over'); };
+$('faces').ondragleave = () => $('faces').classList.remove('over');
+$('faces').ondrop = (e) => { e.preventDefault(); $('faces').classList.remove('over'); addImages(e.dataTransfer.files); };
+if (matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches) { $('faces-how').textContent = 'Tap to add photos of your colleagues'; $('faces-how').nextElementSibling.textContent = 'Up to 5. They never leave this phone.'; }
+else if (/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)) $('faces-how').innerHTML = '<kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>Ctrl</kbd>+<kbd>4</kbd> a face from the call, then <kbd>⌘</kbd>+<kbd>V</kbd> here';
+// Ctrl+V a screenshot (Win+Shift+S, Cmd+Shift+Ctrl+4) anywhere on the setup screen; pasting text into the box stays as it is.
 document.onpaste = (e) => {
   if ($('setup').hidden || !e.clipboardData.files.length) return;
   e.preventDefault();
@@ -74,7 +88,7 @@ $('ics').onchange = async (e) => { if (e.target.files[0]) $('text').value = awai
 $('text').ondragover = (e) => e.preventDefault();
 $('text').ondrop = async (e) => {
   const f = e.dataTransfer.files[0];
-  if (f) { e.preventDefault(); $('text').value = await f.text(); }
+  if (f) { e.preventDefault(); if (f.type.startsWith('image/')) addImages(e.dataTransfer.files); else $('text').value = await f.text(); }
 };
 
 $('generate').onclick = async () => {
@@ -85,19 +99,42 @@ $('generate').onclick = async () => {
     const r = await fetch('spec', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ text, imageCount: images.length, player: me?.name.split(' ')[0] }),
+      body: JSON.stringify({ text, imageCount: images.length, player: me?.name.split(' ')[0], previous: spec?.template }),
     });
     if (!r.ok) throw new Error(r.status);
     s = normalizeSpec((await r.json()).spec);
   } catch {
-    s = fallbackSpec(text); // server down or static hosting: still playable
+    s = fallbackSpec(text, Math.random, pickTemplate(spec?.template)); // server down or static hosting: still playable
   }
   $('err').textContent = '';
   start(attachImages(s));
 };
 
+// The page takes the game's colours (SPEC-relief 1.1); the setup screen keeps the default ones.
+function pageColours(pal) {
+  for (const [k, v] of [['--bg0', pal?.bg0], ['--bgm', pal?.bg1], ['--bg1', pal?.goal]]) {
+    if (v) document.body.style.setProperty(k, v); else document.body.style.removeProperty(k);
+  }
+}
+
+// One line of long-run good news on the end screen (SPEC-relief 3). The list is fetched once; if it fails the line just stays hidden.
+let news = [], lastNews = -1;
+fetch('good-news.json').then((r) => r.json())
+  .then((l) => { if (Array.isArray(l)) news = l.filter((e) => e && typeof e.text === 'string' && typeof e.source === 'string' && /^https:\/\//.test(e.url)); })
+  .catch(() => {});
+function showNews() {
+  lastNews = pickNews(news, lastNews);
+  const e = news[lastNews];
+  $('news').hidden = !e;
+  if (!e) return;
+  const link = document.createElement('a');
+  link.href = e.url; link.target = '_blank'; link.rel = 'noopener'; link.textContent = e.source;
+  $('news').replaceChildren(`${e.text} — `, link);
+}
+
 function start(s) {
   spec = s;
+  pageColours(PALETTES[s.palette]);
   $('setup').hidden = true;
   $('play').hidden = false;
   $('title').textContent = s.title;
@@ -133,6 +170,9 @@ function play() {
     onEnd: (r) => {
       $('endmsg').textContent = r.message;
       $('endscore').textContent = `Score: ${r.score}`;
+      $('calm').textContent = spec.messages.calm;
+      $('calm').hidden = !spec.messages.calm;
+      showNews();
       $('end').hidden = false;
     },
   });
@@ -140,7 +180,13 @@ function play() {
 
 $('pause').onclick = () => { $('pause').textContent = game.togglePause() ? 'Resume' : 'Pause'; };
 $('again').onclick = play;
-$('remix').onclick = () => { destroy(); history.replaceState(null, '', location.pathname); $('play').hidden = true; $('setup').hidden = false; };
+// Breathing ring in place of the end screen; any tap on the canvas stops it and the end panel comes back.
+$('breathe').onclick = () => {
+  $('end').hidden = true;
+  $('pause').textContent = 'Pause';
+  game = breathe.init($('canvas'), { spec, images, onEnd: () => { $('end').hidden = false; } });
+};
+$('remix').onclick = () => { destroy(); pageColours(null); history.replaceState(null, '', location.pathname); $('play').hidden = true; $('setup').hidden = false; };
 $('make').onclick = (e) => { e.preventDefault(); $('remix').click(); };
 $('share').onclick = async () => {
   const url = `${location.origin}${location.pathname}#s=${encodeSpec(spec)}`;

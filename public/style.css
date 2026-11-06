@@ -1,22 +1,71 @@
-:root { color-scheme: dark; }
-body { margin: 0; font: 16px system-ui, sans-serif; background: #10243f; color: #e8f0ff; }
-main { max-width: 640px; margin: 0 auto; padding: 12px 16px; }
-h1 { font-size: 1.4rem; margin: 0.3em 0; }
-textarea { width: 100%; box-sizing: border-box; font: inherit; padding: 8px; }
-button { font: inherit; padding: 8px 14px; margin: 4px 4px 4px 0; cursor: pointer; }
-button.on { outline: 2px solid #4da3ff; }
-canvas { width: 100%; max-width: 640px; aspect-ratio: 4 / 3; background: #000; touch-action: none; display: block; }
-.muted { opacity: 0.75; }
+/* Fredoka, SIL Open Font License (fonts/OFL.txt): bundled so nothing loads from a font CDN */
+@font-face { font-family: Fredoka; font-weight: 500; font-display: swap; src: url(fonts/fredoka-latin-500-normal.woff2) format('woff2'); }
+@font-face { font-family: Fredoka; font-weight: 700; font-display: swap; src: url(fonts/fredoka-latin-700-normal.woff2) format('woff2'); }
+
+:root {
+  color-scheme: light;
+  --ink: #2a2350;
+  --card: #fff;
+  --soft: #f1edff;
+  --line: #e2dcff;
+  --pink: #ff5e7e;
+  --green: #2ed58f;
+}
+body {
+  margin: 0; min-height: 100vh;
+  font: 500 16px Fredoka, "Arial Rounded MT Bold", system-ui, sans-serif;
+  color: var(--ink);
+  background: linear-gradient(160deg, #5b8cff 0%, #a66cff 50%, #ff7ab6 100%) fixed;
+}
+main { max-width: 680px; margin: 0 auto; padding: 12px 16px 32px; }
+section { background: var(--card); border-radius: 24px; padding: 16px 18px; box-shadow: 0 12px 40px rgba(42, 35, 80, 0.25); margin-top: 8px; }
+h1 { font-size: 1.9rem; font-weight: 700; margin: 0.1em 0 0.2em; letter-spacing: 0.01em; }
+#setup h1 { font-size: 2.4rem; background: linear-gradient(90deg, #5b8cff, #a66cff, #ff5e7e); -webkit-background-clip: text; background-clip: text; color: transparent; }
+textarea { width: 100%; box-sizing: border-box; font: inherit; padding: 12px 14px; border: 3px solid var(--line); border-radius: 16px; background: var(--soft); color: var(--ink); resize: vertical; }
+textarea:focus { outline: none; border-color: #a66cff; }
+
+button {
+  font: 700 1rem Fredoka, system-ui, sans-serif; padding: 9px 16px; margin: 4px 6px 6px 0; cursor: pointer;
+  border: 0; border-radius: 14px; color: var(--ink); background: var(--soft);
+  box-shadow: 0 4px 0 var(--line); transition: transform 0.06s, box-shadow 0.06s;
+}
+button:hover { filter: brightness(1.04); }
+button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); }
+button:focus-visible { outline: 3px solid #a66cff; outline-offset: 2px; }
+button:disabled { opacity: 0.5; cursor: default; transform: none; }
+button.on { background: var(--pink); color: #fff; box-shadow: 0 4px 0 #c43a5a; }
+#generate, #again { background: var(--green); color: #fff; box-shadow: 0 5px 0 #1a9e66; font-size: 1.15rem; padding: 12px 22px; }
+#generate:active, #again:active { box-shadow: 0 1px 0 #1a9e66; }
+#share, #remix, #howto { background: #ffc93c; color: #5a3a00; box-shadow: 0 4px 0 #d99a00; }
+#pause { background: #5b8cff; color: #fff; box-shadow: 0 4px 0 #3557c9; }
+#help { background: #a66cff; color: #fff; box-shadow: 0 4px 0 #7444d6; min-width: 44px; }
+#games button, #levels button { padding: 7px 12px; font-size: 0.95rem; }
+
+canvas {
+  width: 100%; aspect-ratio: 4 / 3; display: block; touch-action: none;
+  border-radius: 20px; border: 4px solid #fff; box-sizing: border-box;
+  box-shadow: 0 8px 24px rgba(42, 35, 80, 0.3); background: #5ed6ff;
+}
+#end { background: var(--soft); border-radius: 18px; padding: 10px 14px; margin-top: 10px; text-align: center; }
+#endmsg { font-size: 1.2rem; font-weight: 700; margin: 4px 0; }
+#endscore { font-size: 1.6rem; font-weight: 700; margin: 0 0 6px; color: #a66cff; }
+#end .row { justify-content: center; }
+
+.muted { opacity: 0.7; }
 .small { font-size: 0.8rem; }
 .row { display: flex; flex-wrap: wrap; align-items: center; }
-.file { display: block; margin: 8px 0; }
-#thumbs img { width: 40px; height: 40px; border-radius: 50%; margin-right: 4px; }
-a { color: #4da3ff; }
+.file { display: block; margin: 10px 0; font-weight: 700; }
+.file input { display: block; margin-top: 4px; font: inherit; font-weight: 500; }
+.file input::file-selector-button { font: 700 0.9rem Fredoka, system-ui, sans-serif; border: 0; border-radius: 12px; padding: 7px 12px; margin-right: 8px; background: var(--soft); color: var(--ink); box-shadow: 0 3px 0 var(--line); cursor: pointer; }
+#thumbs img { width: 44px; height: 44px; border-radius: 50%; margin-right: 6px; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); }
+a { color: #7444d6; font-weight: 700; }
+
 /* guided tour: a dimmed page with one hole (the box-shadow) and a card under or over it */
 #tour::before { content: ''; position: fixed; inset: 0; z-index: 9; } /* swallows clicks on the page while the tour is open */
-#tour .tour-spot { position: fixed; border-radius: 8px; box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.65); pointer-events: none; transition: all 0.2s; z-index: 10; }
-#tour .tour-card { position: fixed; left: 16px; right: 16px; max-width: 480px; margin: 0 auto; padding: 12px 16px; background: #1b3559; color: #e8f0ff; border-radius: 8px; z-index: 11; }
-#tour h2 { font-size: 1.1rem; margin: 0 0 6px; }
+#tour .tour-spot { position: fixed; border-radius: 14px; box-shadow: 0 0 0 100vmax rgba(20, 12, 50, 0.65); pointer-events: none; transition: all 0.2s; z-index: 10; }
+#tour .tour-card { position: fixed; left: 16px; right: 16px; max-width: 480px; margin: 0 auto; padding: 14px 18px; background: #fff; color: var(--ink); border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); z-index: 11; }
+#tour h2 { font-size: 1.2rem; margin: 0 0 6px; }
 #tour p { margin: 0 0 8px; white-space: pre-line; max-height: 45vh; overflow: auto; }
 #tour .tour-card .row { gap: 4px; }
 #tour .tour-card .small { margin-left: auto; }
+#tour-next { background: var(--green); color: #fff; box-shadow: 0 4px 0 #1a9e66; }

@@ -31,7 +31,7 @@ Paste a meeting invite (or a sentence), optionally drop a photo, get a 30-second
 - Attention: 20–40% at best. Interruptions every few seconds.
 - Constraints this imposes:
   - Pausable at any moment, no penalty for stopping.
-  - One input only: mouse/touch click-or-drag. No keyboard.
+  - One input only: mouse/touch click-or-drag. Exception: `drive` also takes WASD/arrows (2026-11-06), with drag as the touch equivalent.
   - No sound by default. No full-screen. Window ≥ 400×300 must work.
   - Session length 30–90 seconds, then "play again" or "share".
   - Nothing on screen that looks embarrassing on a screen share (see §9).
@@ -58,6 +58,7 @@ Each is a self-contained module exposing `init(canvas, params)` and `destroy()`.
 | `sink` | Flick balls into a hole/bin | drag + release | ball faces, hole label, background | colleagues → "Q4 Budget" bin |
 | `whack` | Pop targets before they vanish | click | target faces, hammer label | "Mute Marco" |
 | `dodge` | Move a dot, avoid falling items | drag | falling item sprites, player sprite | dodge "Action Items" |
+| `drive` | Top-down car on a scrolling road, dodge the actors standing on it | WASD/arrows, or hold + drag | obstacle faces, driver sprite | drive through the agenda |
 | `defend` | Place turrets, stop actors marching across | click | enemy faces, turret sprite | mute the stakeholders |
 | `catch` | Move a basket, catch good, avoid bad | drag | good/bad sprites, basket label | catch "Coffee", avoid "Follow-ups" |
 | `stack` | Tap to drop blocks, build a tower | click | block labels (agenda points), background | stack the agenda |

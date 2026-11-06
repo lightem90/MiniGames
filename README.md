@@ -2,8 +2,8 @@
 
 Paste a meeting invite (or drop the .ics, or just describe it), get a 60-second browser game about it, share the link.
 Invites are parsed in the browser: names and duration go to the LLM, emails and links never do. Design: see [GDD.md](GDD.md).
-Ten templates, switchable with one tap in the game: `sink` (flick them into the bin), `whack` (tap them before they vanish),
-`dodge` (drag your avatar, dodge the follow-ups), `defend` (place turrets, stop the march), `merge` (drop and merge, Suika-style),
+Eleven templates, switchable with one tap in the game: `sink` (flick them into the bin), `whack` (tap them before they vanish),
+`dodge` (drag your avatar, dodge the follow-ups), `drive` (steer with WASD or drag, dodge them on the road), `defend` (place turrets, stop the march), `merge` (drop and merge, Suika-style),
 `blast` (drag blocks onto a grid, clear lines), `helix` (slide the rings, fall through the gaps), `hop` (tap to cross the roads),
 `click` (tap the mute button as fast as you can), `trap` (block hex cells, corner the escapee). Uploaded faces become the actors.
 "How it works" on the first screen (or `?` next to Pause) runs a guided tour of every control, including each game's rules (`public/tour.js`).

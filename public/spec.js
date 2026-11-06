@@ -3,12 +3,13 @@
 // and always returns a playable spec.
 import { parseInvite } from './invite.js';
 
-export const TEMPLATES = ['sink', 'whack', 'dodge', 'defend', 'merge', 'blast', 'helix', 'hop', 'click', 'trap'];
+export const TEMPLATES = ['sink', 'whack', 'dodge', 'drive', 'defend', 'merge', 'blast', 'helix', 'hop', 'click', 'trap'];
 // What the `goal` slot means per template, and its default when the LLM gives none.
 export const TEMPLATE_DEFAULTS = {
   sink: { subtitle: 'Sink everything before the sync ends', goal: 'Trash', sprite: 'emoji:🗑️' },
   whack: { subtitle: 'Mute them before they finish the sentence', goal: 'Mute', sprite: 'emoji:🔇' },
   dodge: { subtitle: 'Dodge the follow-ups until the call ends', goal: 'You', sprite: 'emoji:☕' },
+  drive: { subtitle: 'Drive through the agenda, dodge everyone on the road', goal: 'You', sprite: 'emoji:😎' },
   defend: { subtitle: 'Hold the line until the meeting ends', goal: 'Mute', sprite: 'emoji:🔇' },
   merge: { subtitle: 'Merge the attendees until the sync ends', goal: 'Box', sprite: 'emoji:📦' },
   blast: { subtitle: 'Clear the agenda, line by line', goal: 'Grid', sprite: 'emoji:🧱' },
@@ -18,11 +19,12 @@ export const TEMPLATE_DEFAULTS = {
   trap: { subtitle: 'Corner them before they escape the call', goal: 'Block', sprite: 'emoji:🚧' },
 };
 export const DIFFICULTIES = ['easy', 'normal', 'hard'];
+// Bright, hyper-casual palettes: bg0 -> bg1 sky gradient, ink = text outline, colors = one per actor (by label).
 export const PALETTES = {
-  'corporate-blue': { bg: '#10243f', fg: '#e8f0ff', accent: '#4da3ff', goal: '#1d3b66' },
-  sunset: { bg: '#3b1d2a', fg: '#fff0e8', accent: '#ff8a5c', goal: '#5a2a3c' },
-  mint: { bg: '#0f3a33', fg: '#e6fff8', accent: '#3ddc97', goal: '#17564b' },
-  mono: { bg: '#1e1e1e', fg: '#f2f2f2', accent: '#bdbdbd', goal: '#333333' },
+  'corporate-blue': { bg0: '#5ed6ff', bg1: '#3a6dff', ink: '#1b2a6b', accent: '#ffd23f', goal: '#2849b8', colors: ['#ff5e7e', '#ffb627', '#2ed58f', '#a66cff', '#ff7f3f', '#19c3e6'] },
+  sunset: { bg0: '#ffc46b', bg1: '#ff5f8f', ink: '#5b1a43', accent: '#fff36b', goal: '#c23a6b', colors: ['#7b5cff', '#2ed58f', '#19c3e6', '#ff3d5a', '#ffb627', '#ff7fd1'] },
+  mint: { bg0: '#8ff7cf', bg1: '#1db9a4', ink: '#0d4b44', accent: '#ffe14d', goal: '#12897a', colors: ['#ff5e7e', '#ffb627', '#7b5cff', '#3a8bff', '#ff7f3f', '#f15bb5'] },
+  mono: { bg0: '#d9ccff', bg1: '#8a72f5', ink: '#2e1f6b', accent: '#ffd23f', goal: '#5b43c9', colors: ['#ff5e7e', '#ffb627', '#2ed58f', '#7b5cff', '#3a8bff', '#ff7f3f'] },
 };
 
 export const MAX_ACTORS = 8;

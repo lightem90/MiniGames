@@ -7,6 +7,7 @@ import { startTour } from './tour.js';
 import * as sink from './sink.js';
 import * as whack from './whack.js';
 import * as dodge from './dodge.js';
+import * as drive from './drive.js';
 import * as defend from './defend.js';
 import * as merge from './merge.js';
 import * as blast from './blast.js';
@@ -15,7 +16,7 @@ import * as hop from './hop.js';
 import * as click from './click.js';
 import * as trap from './trap.js';
 
-const GAMES = { sink, whack, dodge, defend, merge, blast, helix, hop, click, trap };
+const GAMES = { sink, whack, dodge, drive, defend, merge, blast, helix, hop, click, trap };
 
 const $ = (id) => document.getElementById(id);
 const images = []; // 128x128 circle-cropped canvases, in memory only

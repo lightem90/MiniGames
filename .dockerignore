@@ -2,7 +2,6 @@
 .env.*
 node_modules
 GDD.md
-README.md
 .git
 .gitignore
 .gitattributes

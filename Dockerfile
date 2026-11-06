@@ -3,7 +3,8 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 # the share-preview renderer and emoji art; nothing else
 RUN npm ci --omit=dev
-COPY server.js llm.js og.js ./
+# README.md: the completeness test checks every game is listed there
+COPY server.js llm.js og.js README.md ./
 COPY public ./public
 COPY test ./test
 # Build fails if the unit tests fail

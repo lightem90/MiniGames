@@ -19,7 +19,19 @@ docker run --rm -p 8080:8080 --env-file .env meetingbreak
 ```
 
 Open http://localhost:8080. Without a key the game still works, with simple local specs instead of the LLM.
-The build runs the unit tests and fails if one breaks. Without Docker: `npm test`, then `node --env-file=.env server.js` (Node 20.6+).
+The build runs the unit tests and fails if one breaks. Without Docker: `npm install` once, `npm test`, then `node --env-file=.env server.js` (Node 20.6+).
+
+## Share links
+
+**Copy link** gives `/g?s=<game>`. That page carries link-preview tags (title, description, a 1200×630 picture drawn by
+`og.js` at `/og.png`), so Slack, Teams, WhatsApp and LinkedIn show a real card. The picture has the title, emoji and names, never faces.
+Set `PUBLIC_URL` (e.g. `https://meetingbreak.example`) in production so preview URLs are absolute and correct behind a proxy.
+Old `#s=` links still open. Without `npm install` the server still runs; previews just have no picture.
+
+**K-factor** (GDD §11), from the server log: `{"event":"share"}` lines are shares, `"via":"share"` on a generation
+is a new game made by someone who arrived from a shared link. K ≈ via-share generations / shares.
+
+Emoji in previews: [Twemoji](https://github.com/jdecked/twemoji), CC-BY 4.0 (credited on the page).
 
 ## LLM settings (`.env`)
 
@@ -42,7 +54,8 @@ tells the game who the player is (so you are never a target). It is the hook for
 ## Privacy
 
 Uploaded images never leave the browser and are not in share links. Only the typed text (plus your first name, if signed in) is sent to the LLM, with email
-addresses removed. Nothing is stored. Note: free LLM tiers (for example Gemini's) may use prompts to improve their products.
+addresses removed. Nothing is stored. Share links put the game (title, names, emoji) in the query string so previews work:
+our server never logs it, but **turn off query-string logging at your host/proxy**, or those names end up in its access logs. Note: free LLM tiers (for example Gemini's) may use prompts to improve their products.
 
 ## Add your own game
 

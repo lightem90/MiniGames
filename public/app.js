@@ -101,7 +101,7 @@ $('generate').onclick = async () => {
     const r = await fetch('spec', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ text, imageCount: images.length, player: me?.name.split(' ')[0], previous: spec?.template, lang: LANG }),
+      body: JSON.stringify({ text, imageCount: images.length, player: me?.name.split(' ')[0], previous: spec?.template, lang: LANG, via: viaShare ? 'share' : undefined }),
     });
     if (!r.ok) throw new Error(r.status);
     s = normalizeSpec((await r.json()).spec);
@@ -189,10 +189,12 @@ $('breathe').onclick = () => {
   $('pause').textContent = t('pause');
   game = breathe.init($('canvas'), { spec, images, onEnd: () => { $('end').hidden = false; } });
 };
-$('remix').onclick = () => { destroy(); pageColours(null); history.replaceState(null, '', location.pathname); $('play').hidden = true; $('setup').hidden = false; };
+$('remix').onclick = () => { destroy(); pageColours(null); history.replaceState(null, '', new URL('.', location.href).pathname); $('play').hidden = true; $('setup').hidden = false; };
 $('make').onclick = (e) => { e.preventDefault(); $('remix').click(); };
 $('share').onclick = async () => {
-  const url = `${location.origin}${location.pathname}#s=${encodeSpec(spec)}`;
+  // /g?s=... so chat apps can show a preview card (they never see #fragments); still no images in the link
+  const url = new URL(`g?s=${encodeSpec(spec)}`, location.href).href;
+  navigator.sendBeacon?.('event', JSON.stringify({ type: 'share' })); // counts shares for the K-factor, nothing else
   try { await navigator.clipboard.writeText(url); $('share').textContent = t('copied'); }
   catch { prompt(t('copyPrompt'), url); }
 };
@@ -226,6 +228,8 @@ initAuth((user) => {
   $('signin').hidden = !!user;
 });
 
-const m = /^#s=(.+)$/.exec(location.hash);
-const shared = m && decodeSpec(m[1]);
+// A shared game arrives as /g?s=... or, from older links, #s=...
+const link = new URLSearchParams(location.search).get('s') || /^#s=(.+)$/.exec(location.hash)?.[1];
+const shared = link && decodeSpec(link);
+const viaShare = !!shared; // a game generated from here was made by someone who came from a shared link
 if (shared) start(shared);

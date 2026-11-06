@@ -121,7 +121,7 @@ Rules:
 - optional background removal (`@imgly/background-removal` in-browser, or skip in MVP and just circle-crop)
 - stored in memory / `sessionStorage`, referenced as `img:<n>` in the spec
 
-**Shared links** → spec is base64-encoded in the URL fragment (`#s=...`). Images are *not* in the link; recipients see emoji/text fallbacks unless the sender re-uploads. This is a deliberate privacy choice (§9).
+**Shared links** → spec is base64-encoded in the query of `/g?s=...` (2026-11-06; it was the `#s=` fragment, which chat apps never see, so links had no preview). The server reads it only to write preview tags and draw `/og.png` (title, emoji, names; never images), and never logs it; host access logs must drop query strings. Images are *not* in the link; recipients see emoji/text fallbacks unless the sender re-uploads (§9). Old `#s=` links still open.
 
 ## 8. Architecture
 
@@ -176,7 +176,7 @@ Banner ads: no. They kill the "fits in a small tab" constraint.
 - Share rate: plays that end in "copy link" (target > 15%)
 - K-factor from shared links: new generations per shared game (target > 0.3)
 
-No analytics SDK in MVP; count events in the edge function and a `navigator.sendBeacon` on share click.
+No analytics SDK in MVP; count events in the edge function and a `navigator.sendBeacon` on share click. Built 2026-11-06: the server logs `{"event":"share"}` per share and `"via":"share"` on generations from a shared page; K ≈ the second count / the first.
 
 ## 12. Roadmap
 

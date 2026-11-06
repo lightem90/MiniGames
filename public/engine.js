@@ -18,9 +18,10 @@ export const short = (label) => (label.length <= 8 ? label : label.split(/\s+/).
 
 // Same label -> same bright colour, so "Marco" keeps his colour across games.
 export function colorFor(pal, text) {
-  let h = 7;
-  for (const ch of String(text)) h = (h * 31 + ch.codePointAt(0)) >>> 0;
-  return pal.colors[h % pal.colors.length];
+  let h = 2166136261; // FNV-1a: well mixed, so names spread over the palette (a plain *31 hash piled them on one colour)
+  for (const ch of String(text)) h = Math.imul(h ^ ch.codePointAt(0), 16777619);
+  h ^= h >>> 15;
+  return pal.colors[(h >>> 0) % pal.colors.length];
 }
 
 export function rr(ctx, x, y, w, h, r) {

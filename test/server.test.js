@@ -151,3 +151,52 @@ test('generateSpec asks the LLM for the player language and returns a spec in it
   assert.equal((await generateSpec('x', 0, { lang: 'it' })).spec.lang, 'it'); // fallback too
   assert.equal((await generateSpec('x', 0, { lang: '<script>' })).spec.lang, 'en');
 });
+
+import { encodeSpec, normalizeSpec } from '../public/spec.js';
+import { sharePage } from '../server.js';
+
+const shareSpec = normalizeSpec({ template: 'drive', title: "Marco's budget review", lang: 'it', actors: [{ label: 'Marco', sprite: 'emoji:🙄' }, { label: 'Giulia', sprite: 'text' }] });
+
+test('/g?s= serves the game page with link-preview tags (title, description, image), escaped', async () => {
+  const s = encodeSpec(shareSpec);
+  const r = await fetch(`${base}/g?s=${s}`);
+  assert.equal(r.status, 200);
+  const html = await r.text();
+  assert.ok(html.includes('<meta property="og:title" content="Marco&#39;s budget review">'));
+  assert.match(html, /<meta property="og:image" content="http:\/\/127\.0\.0\.1:\d+\/og\.png\?s=[\w-]+">/);
+  assert.ok(html.includes('Con Marco, Giulia'));
+  assert.ok(html.includes('summary_large_image'));
+  assert.ok(html.includes('<script type="module" src="app.js">')); // still the normal page for people
+});
+
+test('/g with a broken or oversized s is the plain page, never an error', async () => {
+  for (const s of ['%3Cscript%3E', 'not-base64!!', 'A'.repeat(7000)]) {
+    const r = await fetch(`${base}/g?s=${s}`);
+    assert.equal(r.status, 200);
+    assert.ok(!(await r.text()).includes('og:title'));
+  }
+});
+
+test('sharePage escapes whatever ends up in the tags', () => {
+  const html = sharePage('<title>MeetingBreak</title>', { ...shareSpec, title: '"><script>x</script>' }, 'http://h', 'abc');
+  assert.ok(!html.includes('<script>'));
+});
+
+test('/og.png renders a PNG card from the spec, and refuses junk', async () => {
+  const r = await fetch(`${base}/og.png?s=${encodeSpec(shareSpec)}`);
+  if (r.status === 404) return; // renderer not installed here: previews simply have no picture
+  assert.equal(r.status, 200);
+  assert.equal(r.headers.get('content-type'), 'image/png');
+  assert.match(r.headers.get('cache-control'), /immutable/);
+  const png = Buffer.from(await r.arrayBuffer());
+  assert.deepEqual([...png.subarray(1, 4)], [0x50, 0x4e, 0x47]); // "PNG"
+  assert.equal(png.readUInt32BE(16), 1200);
+  assert.equal(png.readUInt32BE(20), 630);
+  assert.equal((await fetch(`${base}/og.png?s=..`)).status, 400);
+});
+
+test('/event counts shares and nothing else', async () => {
+  const ev = (body) => fetch(base + '/event', { method: 'POST', body: JSON.stringify(body) });
+  assert.equal((await ev({ type: 'share' })).status, 204);
+  assert.equal((await ev({ type: 'pageview', user: 'x' })).status, 400);
+});

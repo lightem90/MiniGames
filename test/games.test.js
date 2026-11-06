@@ -11,9 +11,14 @@ const app = read('public/app.js'), llm = read('llm.js'), readme = read('README.m
 // What a game may not do: talk to the network or store anything (faces and names stay in the browser, for one round).
 const FORBIDDEN = /\bfetch\s*\(|XMLHttpRequest|WebSocket|sendBeacon|localStorage|sessionStorage|indexedDB|document\.cookie|https?:\/\/|\beval\s*\(|new Function/;
 
-test('no runtime dependencies', () => {
+// The only packages: the server's share-preview renderer and its emoji art (approved 2026-11-06). Games and the page use none.
+const SERVER_DEPS = ['@resvg/resvg-js', '@twemoji/svg'];
+test('no dependencies beyond the share-preview renderer, and none in the browser code', () => {
   const pkg = JSON.parse(read('package.json'));
-  assert.deepEqual(Object.keys({ ...pkg.dependencies, ...pkg.devDependencies }), [], 'the project has no dependencies: write it with the browser and Node only');
+  assert.deepEqual(Object.keys({ ...pkg.dependencies, ...pkg.devDependencies }).sort(), SERVER_DEPS, 'write games with the browser and Node only: no new dependencies');
+  for (const f of ['app.js', 'engine.js', 'spec.js', ...TEMPLATES.flatMap((t) => [`${t}.js`, `${t}logic.js`])]) {
+    assert.doesNotMatch(read(`public/${f}`), /from\s+['"][^./]/, `public/${f}: browser code imports no packages`);
+  }
 });
 
 for (const t of TEMPLATES) {

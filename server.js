@@ -1,22 +1,27 @@
-// Static files + POST /spec. No database, no stored input: logs keep only source and latency (GDD §9).
+// Static files, POST /spec, shared-game pages with link previews (/g, /og.png) and POST /event.
+// No database, no stored input: logs keep only template, source, latency and event names (GDD §9, §11).
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { generateSpec } from './llm.js';
+import { decodeSpec } from './public/spec.js';
+import { renderCard, CARD_W, CARD_H } from './og.js';
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), 'public');
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.woff2': 'font/woff2', '.json': 'application/json' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.woff2': 'font/woff2', '.json': 'application/json', '.png': 'image/png', '.ttf': 'font/ttf' };
 const MAX_BODY = 8 * 1024;
+const SHARE = /^[A-Za-z0-9_-]{1,6000}$/; // a share-link spec is base64url, ~1-2 KB; anything else is not ours
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 const LIMIT = 20; // requests per IP per minute
 // shortcut: in-memory limiter, per process only; use the edge platform's limiter when deployed
-const hits = new Map();
+const hits = new Map(), shareHits = new Map();
 
-function limited(ip) {
+function limited(ip, map = hits) {
   const now = Date.now();
-  const recent = (hits.get(ip) || []).filter((t) => now - t < 60_000);
+  const recent = (map.get(ip) || []).filter((t) => now - t < 60_000);
   recent.push(now);
-  hits.set(ip, recent);
+  map.set(ip, recent);
   return recent.length > LIMIT;
 }
 
@@ -32,6 +37,27 @@ function readBody(req) {
     req.on('end', () => resolve(Buffer.concat(chunks).toString()));
     req.on('error', reject);
   });
+}
+
+// Absolute site URL for preview tags: PUBLIC_URL when set, else what the request says (validated, then escaped on output).
+function origin(req) {
+  if (process.env.PUBLIC_URL) return process.env.PUBLIC_URL.replace(/\/$/, '');
+  const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
+  const proto = String(req.headers['x-forwarded-proto'] || 'http').split(',')[0].trim();
+  return `${proto === 'https' ? 'https' : 'http'}://${/^[\w.-]+(:\d+)?$/.test(host) ? host : 'localhost'}`;
+}
+
+// index.html with link-preview tags for one game. Slack, Teams, WhatsApp and LinkedIn read these;
+// they never see a #fragment, which is why shared links are /g?s=... (GDD §7).
+export function sharePage(html, spec, base, s) {
+  const names = spec.actors.slice(0, 5).map((a) => a.label).join(', ');
+  const desc = spec.lang === 'it' ? `${spec.subtitle}. Con ${names}. Un gioco di 60 secondi.` : `${spec.subtitle}. Starring ${names}. A 60-second game.`;
+  const meta = [
+    ['og:type', 'website'], ['og:site_name', 'MeetingBreak'], ['og:title', spec.title], ['og:description', desc],
+    ['og:url', `${base}/g?s=${s}`], ['og:image', `${base}/og.png?s=${s}`], ['og:image:width', CARD_W], ['og:image:height', CARD_H], ['og:image:alt', spec.title],
+  ].map(([k, v]) => `<meta property="${k}" content="${esc(v)}">`);
+  meta.push('<meta name="twitter:card" content="summary_large_image">', `<meta name="description" content="${esc(desc)}">`);
+  return html.replace('<title>MeetingBreak</title>', `<title>${esc(spec.title)} · MeetingBreak</title>\n${meta.join('\n')}`);
 }
 
 export function createServer(opts = {}) {
@@ -54,8 +80,33 @@ export function createServer(opts = {}) {
         try { body = JSON.parse(await readBody(req)); } catch { return send(400, { error: 'bad request' }); }
         const t0 = Date.now();
         const { spec, source } = await generateSpec(body?.text, body?.imageCount, { ...llm, player: body?.player, previous: body?.previous, lang: body?.lang });
-        console.log(JSON.stringify({ template: spec.template, source, ms: Date.now() - t0 }));
+        const via = body?.via === 'share' ? 'share' : undefined; // a game made by someone who arrived from a shared link: the K-factor numerator
+        console.log(JSON.stringify({ template: spec.template, source, via, ms: Date.now() - t0 }));
         return send(200, { spec, source });
+      }
+      if (req.method === 'POST' && url.pathname === '/event') {
+        if (limited(req.socket.remoteAddress, shareHits)) return send(429, { error: 'slow down' });
+        let body;
+        try { body = JSON.parse(await readBody(req)); } catch { return send(400, { error: 'bad request' }); }
+        if (body?.type !== 'share') return send(400, { error: 'unknown event' });
+        console.log(JSON.stringify({ event: 'share' })); // the K-factor denominator; nothing about who or what
+        res.writeHead(204); return res.end();
+      }
+      if (req.method === 'GET' && (url.pathname === '/g' || url.pathname === '/og.png')) {
+        const s = url.searchParams.get('s') || '';
+        const spec = SHARE.test(s) ? decodeSpec(s) : null;
+        if (url.pathname === '/og.png') {
+          if (!spec) return send(400, 'bad game', 'text/plain');
+          // shortcut: no rate limit here (chat crawlers share IPs); put a CDN in front if previews get heavy traffic
+          const png = await renderCard(spec);
+          if (!png) return send(404, 'no preview renderer installed', 'text/plain');
+          // the picture depends only on s, so any cache may keep it
+          res.writeHead(200, { 'content-type': 'image/png', 'cache-control': 'public, max-age=604800, immutable' });
+          return res.end(png);
+        }
+        const html = await readFile(path.join(PUBLIC, 'index.html'), 'utf8');
+        console.log(JSON.stringify({ event: 'open', valid: !!spec }));
+        return send(200, spec ? sharePage(html, spec, origin(req), s) : html, 'text/html');
       }
       if (req.method === 'GET' && url.pathname === '/config') {
         // OAuth client IDs are public by design; the secrets stay with Google/Microsoft.

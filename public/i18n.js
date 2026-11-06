@@ -108,7 +108,8 @@ export const STRINGS = {
     "controls.helix": "Drag sideways to spin the rings. Fall through the gaps and never land on an attendee.",
     "controls.hop": "Tap above your avatar to hop one lane forward, tap to its left or right to step aside. Do not get run over.",
     "controls.click": "Tap the mute button as fast as you can until the counter reaches the target.",
-    "controls.trap": "Tap a cell to block it. Corner the escapee before it reaches the edge; fewer moves, higher score."
+    "controls.trap": "Tap a cell to block it. Corner the escapee before it reaches the edge; fewer moves, higher score.",
+    "credits": "Link previews use <a href=\"https://github.com/jdecked/twemoji\" target=\"_blank\" rel=\"noopener\">Twemoji</a> emoji (CC-BY 4.0)."
   },
   "it": {
     "tagline": "Incolla l'invito della riunione (o descrivila), aggiungi le facce dei colleghi e ottieni un gioco di 60 secondi su misura.",
@@ -217,7 +218,8 @@ export const STRINGS = {
     "controls.helix": "Trascina di lato per girare gli anelli. Cadi nei buchi e non atterrare mai su un partecipante.",
     "controls.hop": "Tocca sopra il tuo avatar per saltare avanti di una corsia, a destra o a sinistra per spostarti. Non farti investire.",
     "controls.click": "Tocca il pulsante muto più veloce che puoi finché il contatore arriva al traguardo.",
-    "controls.trap": "Tocca una cella per bloccarla. Chiudi il fuggitivo prima che arrivi al bordo; meno mosse, più punti."
+    "controls.trap": "Tocca una cella per bloccarla. Chiudi il fuggitivo prima che arrivi al bordo; meno mosse, più punti.",
+    "credits": "Le anteprime dei link usano le emoji <a href=\"https://github.com/jdecked/twemoji\" target=\"_blank\" rel=\"noopener\">Twemoji</a> (CC-BY 4.0)."
   }
 };
 

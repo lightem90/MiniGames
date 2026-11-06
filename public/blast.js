@@ -1,5 +1,6 @@
 // `blast` template: drag a piece from the tray onto the grid; full rows and columns clear.
 import { createState, pickPiece, cellFor, canPlace, place, step, score, size, N, CELL, GX, GY, SLOTS } from './blastlogic.js';
+import { t } from './i18n.js';
 import { run, rr } from './engine.js';
 
 export function init(canvas, params) {
@@ -33,7 +34,7 @@ export function init(canvas, params) {
       before = s.grid.slice();
       for (const [i, v] of cleared) fx.burst(GX + (i % N + 0.5) * CELL, GY + (Math.floor(i / N) + 0.5) * CELL, color(s.actors[v - 1].label), 6);
       const lines = Math.round(cleared.length / N);
-      if (lines) { fx.text(GX + (N * CELL) / 2, GY + (N * CELL) / 2, lines > 1 ? `COMBO x${lines}!` : ['GREAT!', 'NICE!', 'CLEAR!'][s.cleared % 3], '#fff36b', 30); fx.shake(3 * lines); }
+      if (lines) { fx.text(GX + (N * CELL) / 2, GY + (N * CELL) / 2, lines > 1 ? t('fx.combo', { n: lines }) : t('fx.clear').split('|')[s.cleared % 3], '#fff36b', 30); fx.shake(3 * lines); }
 
       ctx.fillStyle = 'rgba(10,15,40,0.3)'; rr(ctx, GX - 6, GY - 6, N * CELL + 12, N * CELL + 12, 14); ctx.fill();
       for (let i = 0; i < N * N; i++) {
@@ -55,7 +56,7 @@ export function init(canvas, params) {
         }
         drawPiece(block, s, p, s.drag.x, s.drag.y);
       }
-      if (s.placed === 0) label('drag a piece onto the grid', GX + (N * CELL) / 2, GY + N * CELL + 14, 13);
+      if (s.placed === 0) label(t('hint.blast'), GX + (N * CELL) / 2, GY + N * CELL + 14, 13);
     },
   });
 }

@@ -1,5 +1,6 @@
 // `sink` template: flick the actors into the bin. Logic in sinklogic.js, loop in engine.js.
 import { createState, pickBall, flick, step, score } from './sinklogic.js';
+import { t } from './i18n.js';
 import { run } from './engine.js';
 
 const FLICK_GAIN = 6; // drag px -> px/s
@@ -38,7 +39,7 @@ export function init(canvas, params) {
       for (const b of s.balls) {
         if (b.sunk && !done.has(b)) {
           done.add(b);
-          fx.burst(h.x, h.y, color(b.actor.label), 24); fx.text(h.x, h.y + h.r + 18, 'SUNK!', '#fff36b', 24); fx.shake(4);
+          fx.burst(h.x, h.y, color(b.actor.label), 24); fx.text(h.x, h.y + h.r + 18, t('fx.sunk'), '#fff36b', 24); fx.shake(4);
         }
         if (!b.sunk) sprite(b.actor.sprite, b.actor.label, b.x, b.y, b.r);
       }

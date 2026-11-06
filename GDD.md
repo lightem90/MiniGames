@@ -81,6 +81,7 @@ The LLM outputs *only* this JSON. The client validates it against a JSON Schema 
 {
   "version": 1,
   "template": "sink",
+  "lang": "en",
   "title": "Q4 Budget Alignment Survival",
   "subtitle": "Sink every stakeholder before the sync ends",
   "difficulty": "normal",
@@ -104,6 +105,7 @@ The LLM outputs *only* this JSON. The client validates it against a JSON Schema 
 Rules:
 - `sprite` is one of `img:<index>` (user upload), `emoji:<char>`, or `text` (label drawn on a circle).
 - Max 8 actors. Extra attendees are dropped, not merged.
+- `lang` is `en` or `it` (2026-11-06): the language of the texts, taken from the player's browser. Unknown → `en`. The page itself follows the viewer's browser language.
 - `messages.calm` is optional (≤ 120 chars): one kind closing line for the end screen, never a fact (SPEC-relief §3).
 - Strings are length-capped and sanitised client-side (no HTML).
 - The LLM never sees image bytes — only `"user uploaded 2 images"`. Images stay in the browser.

@@ -1,5 +1,6 @@
 // `dodge` template: drag your avatar (the goal sprite) left/right, dodge the falling actors.
 import { createState, moveTo, step, score } from './dodgelogic.js';
+import { t } from './i18n.js';
 import { run, W, H } from './engine.js';
 
 export function init(canvas, params) {
@@ -22,7 +23,7 @@ export function init(canvas, params) {
         sprite(it.actor.sprite, it.actor.label, it.x, it.y, it.r);
       }
       const p = s.player;
-      if (s.lives < lives) { fx.shake(8); fx.flash('#ff3d5a'); fx.burst(p.x, p.y, '#ff3d5a', 20); fx.text(p.x, p.y - 36, 'OUCH!', '#ffd0d8', 22); }
+      if (s.lives < lives) { fx.shake(8); fx.flash('#ff3d5a'); fx.burst(p.x, p.y, '#ff3d5a', 20); fx.text(p.x, p.y - 36, t('fx.ouch'), '#ffd0d8', 22); }
       lives = s.lives;
       sprite(spec.goal.sprite, spec.goal.label, p.x, p.y - Math.abs(Math.sin(t * 9)) * 3, p.r + 2, '#fff');
     },

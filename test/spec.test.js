@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { normalizeSpec, fallbackSpec, encodeSpec, decodeSpec, cleanSprite, MAX_ACTORS, PALETTES } from '../public/spec.js';
 
 const GDD_EXAMPLE = {
-  version: 1, template: 'sink', title: 'Q4 Budget Alignment Survival', subtitle: 'Sink every stakeholder before the sync ends',
+  version: 1, template: 'sink', lang: 'en', title: 'Q4 Budget Alignment Survival', subtitle: 'Sink every stakeholder before the sync ends',
   difficulty: 'normal', durationSec: 60, palette: 'corporate-blue',
   actors: [
     { label: 'Marco', role: 'enemy', sprite: 'img:0' },
@@ -127,4 +127,16 @@ test('messages.calm is optional, capped at 120 chars and survives a share link',
   assert.equal(normalizeSpec({}).messages.calm, '');
   assert.equal(normalizeSpec({ messages: { calm: 'x'.repeat(300) } }).messages.calm.length, 120);
   assert.equal(decodeSpec(encodeSpec(normalizeSpec({ messages: { calm: 'Take a slow breath.' } }))).messages.calm, 'Take a slow breath.');
+});
+
+test('an Italian spec gets Italian defaults; an unknown language falls back to English', () => {
+  const it = normalizeSpec({ template: 'drive', lang: 'it' });
+  assert.equal(it.lang, 'it');
+  assert.equal(it.title, 'Sopravvivi alla riunione');
+  assert.equal(it.goal.label, 'Tu');
+  assert.ok(it.subtitle.includes('strada'));
+  assert.deepEqual(it.actors.map((a) => a.label), ['Slide', 'Cose da fare', 'Rispondi a tutti']);
+  assert.equal(normalizeSpec({ lang: 'klingon' }).lang, 'en');
+  assert.equal(decodeSpec(encodeSpec(it)).lang, 'it'); // share links keep the language they were made in
+  assert.equal(fallbackSpec('x', () => 0, 'sink', 'it').messages.win, 'Riunione chiusa. Liberi tutti.');
 });

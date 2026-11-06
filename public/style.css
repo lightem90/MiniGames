@@ -65,6 +65,7 @@ canvas {
 .muted { opacity: 0.7; }
 .small { font-size: 0.8rem; }
 .row { display: flex; flex-wrap: wrap; align-items: center; }
+[hidden] { display: none !important; } /* .row's display: flex would otherwise show hidden rows, like the sign-in line */
 .file { display: block; margin: 10px 0; font-weight: 700; }
 .file input { display: block; margin-top: 4px; font: inherit; font-weight: 500; }
 .file input::file-selector-button { font: 700 0.9rem Fredoka, system-ui, sans-serif; border: 0; border-radius: 12px; padding: 7px 12px; margin-right: 8px; background: var(--soft); color: var(--ink); box-shadow: 0 3px 0 var(--line); cursor: pointer; }

@@ -53,7 +53,7 @@ export function createServer(opts = {}) {
         let body;
         try { body = JSON.parse(await readBody(req)); } catch { return send(400, { error: 'bad request' }); }
         const t0 = Date.now();
-        const { spec, source } = await generateSpec(body?.text, body?.imageCount, { ...llm, player: body?.player, previous: body?.previous });
+        const { spec, source } = await generateSpec(body?.text, body?.imageCount, { ...llm, player: body?.player, previous: body?.previous, lang: body?.lang });
         console.log(JSON.stringify({ template: spec.template, source, ms: Date.now() - t0 }));
         return send(200, { spec, source });
       }

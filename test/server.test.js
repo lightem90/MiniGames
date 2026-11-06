@@ -141,3 +141,13 @@ test('the server serves the good-news list as JSON', async () => {
   assert.match(r.headers.get('content-type'), /application\/json/);
   assert.ok(Array.isArray(await r.json()));
 });
+
+test('generateSpec asks the LLM for the player language and returns a spec in it', async () => {
+  let sent;
+  const fetchFn = async (_u, o) => { sent = JSON.parse(o.body); return { ok: true, json: async () => ({ choices: [{ message: { content: '{"title":"Revisione"}' } }] }) }; };
+  const { spec } = await generateSpec('Marco', 0, { apiKey: 'k', fetchFn, lang: 'it' });
+  assert.ok(sent.messages[1].content.includes('language: Italian'));
+  assert.equal(spec.lang, 'it');
+  assert.equal((await generateSpec('x', 0, { lang: 'it' })).spec.lang, 'it'); // fallback too
+  assert.equal((await generateSpec('x', 0, { lang: '<script>' })).spec.lang, 'en');
+});

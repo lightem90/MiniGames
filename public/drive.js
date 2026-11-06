@@ -1,5 +1,6 @@
 // `drive` template: steer with WASD/arrows (or hold and drag), dodge the actors on the road.
 import { createState, setKeys, pointTo, step, score, meters, ROAD_L, ROAD_R, CAR_W, CAR_H } from './drivelogic.js';
+import { t } from './i18n.js';
 import { run, rr, W, H } from './engine.js';
 
 const TREES = [[24, 0], [52, 130], [30, 260], [372, 60], [350, 190], [378, 320]];
@@ -55,13 +56,13 @@ export function init(canvas, params) {
       }
       for (const o of s.obstacles) sprite(o.actor.sprite, o.actor.label, o.x, o.y, o.r);
       const c = s.car;
-      if (s.lives < lives) { fx.shake(9); fx.flash('#ff3d5a'); fx.burst(c.x, c.y - CAR_H / 2, '#ffb627', 22); fx.text(c.x, c.y - CAR_H, 'CRASH!', '#ff9aa8', 22); }
+      if (s.lives < lives) { fx.shake(9); fx.flash('#ff3d5a'); fx.burst(c.x, c.y - CAR_H / 2, '#ffb627', 22); fx.text(c.x, c.y - CAR_H, t('fx.crash'), '#ff9aa8', 22); }
       lives = s.lives;
       if (!(s.hurt > 0 && Math.floor(s.hurt * 12) % 2)) { // blinks while invulnerable
         car(ctx, c.x, c.y, (c.vx / 240) * 0.25, pal.colors[0]);
         sprite(spec.goal.sprite, spec.goal.label, c.x, c.y + 1, 8, '#fff');
       }
-      if (s.dist < 400) label('WASD / arrows, or hold and drag', W / 2, H - 14, 13); // first seconds only
+      if (s.dist < 400) label(t('hint.drive'), W / 2, H - 14, 13); // first seconds only
     },
   });
 }

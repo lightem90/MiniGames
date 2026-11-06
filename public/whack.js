@@ -1,5 +1,6 @@
 // `whack` template: tap the actors before they vanish.
 import { createState, whack, step, score } from './whacklogic.js';
+import { t } from './i18n.js';
 import { run } from './engine.js';
 
 export function init(canvas, params) {
@@ -12,11 +13,11 @@ export function init(canvas, params) {
     hud: (s) => `🔨 ${s.hits}   ❌ ${s.misses}/${s.maxMisses}`,
     down(s, p) {
       if (!whack(s, p.x, p.y) || !fx) return;
-      fx.burst(p.x, p.y, '#fff36b', 18); fx.text(p.x, p.y - 30, ['POW!', 'BAM!', '+100', 'MUTED!'][s.hits % 4], '#fff', 22); fx.shake(3);
+      fx.burst(p.x, p.y, '#fff36b', 18); fx.text(p.x, p.y - 30, t('fx.whack').split('|')[s.hits % 4], '#fff', 22); fx.shake(3);
     },
     draw(ctx, s, ui) {
       fx = ui.fx;
-      for (const t of prev) if (!s.targets.includes(t) && t.life <= 0) { fx.text(t.x, t.y - 10, 'miss', '#ffd0d8', 15); fx.burst(t.x, t.y + t.r * 0.6, 'rgba(255,255,255,0.7)', 6); }
+      for (const t of prev) if (!s.targets.includes(t) && t.life <= 0) { fx.text(t.x, t.y - 10, t('fx.miss'), '#ffd0d8', 15); fx.burst(t.x, t.y + t.r * 0.6, 'rgba(255,255,255,0.7)', 6); }
       prev = s.targets.slice();
       for (const t of s.targets) {
         const age = s.ttl - t.life, k = Math.min(1, age / 0.15), pop = k < 1 ? k * 1.15 : 1; // pops out of its hole

@@ -1,5 +1,6 @@
 // `trap` template: tap cells to block them, trap the actor before it reaches the edge.
 import { createState, cellAt, block, step, score, center, key, ROWS, COLS, CELL } from './traplogic.js';
+import { t } from './i18n.js';
 import { run, rr } from './engine.js';
 
 export function init(canvas, params) {
@@ -17,7 +18,7 @@ export function init(canvas, params) {
       if (!c || !block(s, c.r, c.c) || !fx) return;
       const q = center(c.r, c.c);
       fx.burst(q.x, q.y, '#ff9f43', 10); fx.shake(2);
-      if (s.status === 'won') fx.text(q.x, q.y - 20, 'TRAPPED!', '#fff36b', 26);
+      if (s.status === 'won') fx.text(q.x, q.y - 20, t('fx.trapped'), '#fff36b', 26);
     },
     draw(ctx, s, ui) {
       fx = ui.fx;
@@ -38,7 +39,7 @@ export function init(canvas, params) {
       k = Math.min(1, k + 0.12);
       const x = from.x + (to.x - from.x) * k, y = from.y + (to.y - from.y) * k - Math.sin(k * Math.PI) * 10;
       ui.sprite(s.actor.sprite, s.actor.label, x, y - 2, CELL / 2 + 1);
-      if (!s.moves) ui.label('tap a cell to block it', 200, 290, 13);
+      if (!s.moves) ui.label(t('hint.trap'), 200, 290, 13);
     },
   });
 }

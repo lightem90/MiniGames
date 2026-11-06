@@ -1,5 +1,6 @@
 // `defend` template: actors march in from the left; tap to place turrets (the goal sprite) that stop them.
 import { createState, place, step, score, turretsAllowed, LANES } from './defendlogic.js';
+import { t } from './i18n.js';
 import { run, rr, W, H } from './engine.js';
 
 export function init(canvas, params) {
@@ -11,7 +12,7 @@ export function init(canvas, params) {
     step,
     score,
     hud: (s) => `🛡️ ${s.turrets.length}/${turretsAllowed(s)}   🚪 ${s.leaks}/${s.maxLeaks}`,
-    down(s, p) { if (place(s, p.x, p.y) && fx) { fx.burst(p.x, p.y, '#fff', 10); fx.text(p.x, p.y - 24, 'PLACED!', '#fff', 15); } },
+    down(s, p) { if (place(s, p.x, p.y) && fx) { fx.burst(p.x, p.y, '#fff', 10); fx.text(p.x, p.y - 24, t('fx.placed'), '#fff', 15); } },
     draw(ctx, s, ui) {
       const { pal, sprite, color, label, t } = ui;
       fx = ui.fx;
@@ -24,7 +25,7 @@ export function init(canvas, params) {
       exit.addColorStop(0, 'rgba(255,61,90,0)'); exit.addColorStop(1, 'rgba(255,61,90,0.55)');
       ctx.fillStyle = exit; ctx.fillRect(W - 30, 30, 30, H - 30);
       for (const e of prev) if (!s.enemies.includes(e)) {
-        if (e.x > W) { fx.flash('#ff3d5a', 0.25); fx.shake(5); fx.text(W - 30, e.y, 'LEAK!', '#ffd0d8', 18); }
+        if (e.x > W) { fx.flash('#ff3d5a', 0.25); fx.shake(5); fx.text(W - 30, e.y, t('fx.leak'), '#ffd0d8', 18); }
         else { fx.burst(e.x, e.y, color(e.actor.label), 20); fx.text(e.x, e.y - 20, '+50', '#fff36b', 20); }
       }
       prev = s.enemies.slice();
@@ -46,7 +47,7 @@ export function init(canvas, params) {
         ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
       }
       ctx.lineCap = 'butt';
-      if (s.turrets.length < turretsAllowed(s)) label('tap to place a turret', W / 2, H - 14, 14);
+      if (s.turrets.length < turretsAllowed(s)) label(t('hint.defend'), W / 2, H - 14, 14);
     },
   });
 }

@@ -1,6 +1,7 @@
 // Shared canvas loop for every template: pointer + keys, pause, dt clamp, background, HUD, effects, end banner.
 // A template gives { state, step, draw, hud, score, down?, move?, up?, keys? }; its logic module stays DOM-free.
 import { PALETTES } from './spec.js';
+import { t } from './i18n.js';
 
 export const W = 400;
 export const H = 300;
@@ -264,7 +265,7 @@ export function run(canvas, { spec, images = [], onEnd = () => {} }, game) {
     if (!game.calm) hud();
     if (paused) {
       ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(0, 0, W, H);
-      label(ctx, pal, 'PAUSED', W / 2, H / 2, 44);
+      label(ctx, pal, t('canvas.paused'), W / 2, H / 2, 44);
     }
     if (state.status !== 'playing' && !endAt) {
       endAt = now;
@@ -296,7 +297,7 @@ export function run(canvas, { spec, images = [], onEnd = () => {} }, game) {
     ctx.fillStyle = state.status === 'won' ? '#2ed58f' : '#ff4d6d';
     rr(ctx, -140, -38, 280, 76, 22); ctx.fill();
     ctx.lineWidth = 5; ctx.strokeStyle = '#fff'; ctx.stroke();
-    label(ctx, pal, state.status === 'won' ? 'YOU WIN!' : 'GAME OVER', 0, 2, 40);
+    label(ctx, pal, t(state.status === 'won' ? 'canvas.win' : 'canvas.lose'), 0, 2, 40);
     ctx.restore();
   }
   raf = requestAnimationFrame(frame);

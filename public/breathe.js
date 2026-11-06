@@ -1,5 +1,6 @@
 // Breathing ring on the end screen: one circle in the accent colour, one word under it. No HUD, no score, no sound.
 import { createState, step, phase, stop } from './breathelogic.js';
+import { t } from './i18n.js';
 import { run, W } from './engine.js';
 
 export function init(canvas, params) {
@@ -16,7 +17,7 @@ export function init(canvas, params) {
       ctx.fillStyle = pal.accent; ctx.globalAlpha = 0.9;
       ctx.beginPath(); ctx.arc(W / 2, 135, p.r, 0, 7); ctx.fill();
       ctx.globalAlpha = 1; ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.stroke();
-      label(p.name, W / 2, 274, 24);
+      label(t(`breathe.${p.name}`), W / 2, 274, 24);
     },
   });
 }

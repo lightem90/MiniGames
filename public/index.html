@@ -7,39 +7,40 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<!-- Visible texts carry data-i18n* keys (public/i18n.js); the English here is only the fallback before the script runs. -->
 <main>
   <section id="setup">
     <h1>MeetingBreak</h1>
-    <p class="muted">Paste your meeting invite (or just describe it), add your colleagues' faces, get a 60-second game about it.</p>
-    <label for="text" id="text-label">📋 Paste your meeting invitation here</label>
-    <span class="small muted" id="text-hint">Copy it from Teams, Outlook or Google Calendar, or just describe the meeting in a few words.</span>
-    <textarea id="text" rows="6" maxlength="4000" aria-describedby="text-hint" placeholder="Paste the invitation: title, time and attendees...&#10;&#10;or describe it: Budget review, 14 people, Marco talks too much"></textarea>
+    <p class="muted" data-i18n="tagline">Paste your meeting invite (or just describe it), add your colleagues' faces, get a 60-second game about it.</p>
+    <label for="text" id="text-label" data-i18n="text.label">📋 Paste your meeting invitation here</label>
+    <span class="small muted" id="text-hint" data-i18n="text.hint">Copy it from Teams, Outlook or Google Calendar, or just describe the meeting in a few words.</span>
+    <textarea id="text" rows="6" maxlength="4000" aria-describedby="text-hint" data-i18n-placeholder="text.placeholder" placeholder="Paste the invitation: title, time and attendees...&#10;&#10;or describe it: Budget review, 14 people, Marco talks too much"></textarea>
     <details class="small" id="where">
-      <summary>Where do I find my invite?</summary>
-      <p><b>Teams / Outlook:</b> open the meeting, click in the details, Ctrl+A, Ctrl+C, paste here. Classic Outlook can also do File &rarr; Save As &rarr; .ics.</p>
-      <p><b>Google Calendar / Meet:</b> open the event, select the title, time and guest list, copy, paste here. The invite e-mail in Gmail also has an <i>invite.ics</i> attachment.</p>
-      <p>Names and duration are all the game needs. E-mail addresses are removed before anything leaves this browser.</p>
+      <summary data-i18n="where.summary">Where do I find my invite?</summary>
+      <p data-i18n-html="where.teams"><b>Teams / Outlook:</b> open the meeting, click in the details, Ctrl+A, Ctrl+C, paste here. Classic Outlook can also do File &rarr; Save As &rarr; .ics.</p>
+      <p data-i18n-html="where.google"><b>Google Calendar / Meet:</b> open the event, select the title, time and guest list, copy, paste here. The invite e-mail in Gmail also has an <i>invite.ics</i> attachment.</p>
+      <p data-i18n="where.names">Names and duration are all the game needs. E-mail addresses are removed before anything leaves this browser.</p>
     </details>
-    <label class="file">Invite file (.ics, optional)
+    <label class="file"><span data-i18n="ics.label">Invite file (.ics, optional)</span>
       <input id="ics" type="file" accept=".ics,text/calendar">
     </label>
     <div id="faces" role="button" tabindex="0" aria-describedby="faces-how">
       <div id="thumbs" aria-live="polite"><span class="slot"></span><span class="slot"></span><span class="slot"></span><span class="slot"></span><span class="slot"></span></div>
-      <strong id="faces-title">📸 Put your colleagues in the game</strong>
-      <span id="faces-how"><kbd>Win</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> a face from the call, then <kbd>Ctrl</kbd>+<kbd>V</kbd> here</span>
-      <span class="small muted">or drop photos here / click to pick, up to 5. They never leave this browser.</span>
+      <strong id="faces-title" data-i18n="faces.title">📸 Put your colleagues in the game</strong>
+      <span id="faces-how" data-i18n-html="faces.how"><kbd>Win</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> a face from the call, then <kbd>Ctrl</kbd>+<kbd>V</kbd> here</span>
+      <span class="small muted" id="faces-sub" data-i18n="faces.sub">or drop photos here / click to pick, up to 5. They never leave this browser.</span>
     </div>
     <input id="files" type="file" accept="image/*" multiple hidden>
-    <button id="generate">Generate game</button>
-    <button id="howto">How it works</button>
+    <button id="generate" data-i18n="generate">Generate game</button>
+    <button id="howto" data-i18n="howto">How it works</button>
     <p id="err" class="muted" role="status"></p>
     <div id="signin" class="row small" hidden>
-      <span class="muted">Optional: sign in so you are never one of the targets.</span>
+      <span class="muted" data-i18n="signin.text">Optional: sign in so you are never one of the targets.</span>
       <span id="google-btn"></span>
-      <button id="ms-btn" hidden>Sign in with Microsoft</button>
+      <button id="ms-btn" hidden data-i18n="signin.ms">Sign in with Microsoft</button>
     </div>
-    <p class="small"><span id="who"></span> <button id="signout" hidden>Sign out</button></p>
-    <p class="muted small">Privacy: your images never leave this browser and are not put in share links. Only the text you type (and your first name, if you sign in) is sent to build the game, with email addresses removed. Nothing is stored. You are responsible for the images you use.</p>
+    <p class="small"><span id="who"></span> <button id="signout" hidden data-i18n="signout">Sign out</button></p>
+    <p class="muted small" data-i18n="privacy">Privacy: your images never leave this browser and are not put in share links. Only the text you type (and your first name, if you sign in) is sent to build the game, with email addresses removed. Nothing is stored. You are responsible for the images you use.</p>
   </section>
 
   <section id="play" hidden>
@@ -47,24 +48,24 @@
     <p id="subtitle" class="muted"></p>
     <canvas id="canvas" width="400" height="300"></canvas>
     <div class="row">
-      <button id="pause">Pause</button>
-      <button id="help" aria-label="How to play">?</button>
+      <button id="pause" data-i18n="pause">Pause</button>
+      <button id="help" aria-label="How to play" data-i18n-aria="help.aria">?</button>
       <span id="levels"></span>
     </div>
-    <div class="row"><span class="muted small">Game:</span> <span id="games"></span></div>
+    <div class="row"><span class="muted small" data-i18n="game.label">Game:</span> <span id="games"></span></div>
     <div id="end" hidden>
       <p id="endmsg"></p>
       <p id="endscore"></p>
       <p id="calm" hidden></p>
       <p id="news" class="muted small" hidden></p>
       <div class="row">
-        <button id="again">Play again</button>
-        <button id="share">Copy link</button>
-        <button id="remix">Remix</button>
-        <button id="breathe" aria-label="Breathe: short breathing exercise, about 40 seconds">Breathe</button>
+        <button id="again" data-i18n="again">Play again</button>
+        <button id="share" data-i18n="share">Copy link</button>
+        <button id="remix" data-i18n="remix">Remix</button>
+        <button id="breathe" aria-label="Breathe: short breathing exercise, about 40 seconds" data-i18n="breathe" data-i18n-aria="breathe.aria">Breathe</button>
       </div>
     </div>
-    <p class="small"><a id="make" href="#" >Make your own</a> · <a id="report" href="#">Report</a></p>
+    <p class="small"><a id="make" href="#" data-i18n="make">Make your own</a> · <a id="report" href="#" data-i18n="report">Report</a></p>
   </section>
 </main>
 <script type="module" src="app.js"></script>

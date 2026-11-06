@@ -1,5 +1,6 @@
 // `helix` template: drag sideways to slide the rings; fall through the gaps, never onto an actor.
 import { createState, rotate, gapX, step, score, CX, BALL_R, RING_H } from './helixlogic.js';
+import { t } from './i18n.js';
 import { run, rr, W } from './engine.js';
 
 export function init(canvas, params) {
@@ -38,7 +39,7 @@ export function init(canvas, params) {
       const b = s.ball;
       if (vy > 0 && b.vy < 0) { squash = 1; fx.burst(CX, b.y + BALL_R, pal.colors[0], 6); }
       vy = b.vy;
-      if (s.passed > passed) { fx.text(CX + 45, b.y, s.passed % 5 ? '+10' : 'GREAT!', '#fff36b', s.passed % 5 ? 18 : 24); fx.burst(CX, b.y, '#fff', 8); }
+      if (s.passed > passed) { fx.text(CX + 45, b.y, s.passed % 5 ? '+10' : t('fx.great'), '#fff36b', s.passed % 5 ? 18 : 24); fx.burst(CX, b.y, '#fff', 8); }
       passed = s.passed;
       if (s.status === 'lost' && squash >= 0) { squash = -1; fx.burst(CX, b.y, '#ff3d5a', 30); }
       trail.unshift(b.y); trail.length = Math.min(trail.length, 6);
@@ -48,7 +49,7 @@ export function init(canvas, params) {
       sprite(spec.goal.sprite, spec.goal.label, 0, 0, BALL_R + 3, '#fff');
       ctx.restore();
       squash = squash > 0 ? Math.max(0, squash - 0.12) : squash;
-      if (s.passed === 0) label('drag sideways to spin the rings', W / 2, 286, 13);
+      if (s.passed === 0) label(t('hint.helix'), W / 2, 286, 13);
     },
   });
 }

@@ -1,5 +1,6 @@
 // `hop` template: tap ahead to hop a lane, tap left/right to step aside; actors drive across the roads.
 import { createState, tap, step, score, cam, rowY, LANE, PR } from './hoplogic.js';
+import { t } from './i18n.js';
 import { run, rr, W } from './engine.js';
 
 // a little car with the actor as the driver; dir = 1 drives right
@@ -44,7 +45,7 @@ export function init(canvas, params) {
         for (const x of l.cars) for (const wx of [x - W, x, x + W]) if (wx > -30 && wx < W + 30) car(ctx, sprite, color, a, wx, y, l.dir);
       }
       const p = s.player;
-      if (s.lives < lives) { fx.shake(9); fx.flash('#ff3d5a'); fx.burst(p.x, rowY(s, p.row), '#ff3d5a', 24); fx.text(p.x, rowY(s, p.row) - 30, 'BEEP BEEP!', '#ffd0d8', 20); }
+      if (s.lives < lives) { fx.shake(9); fx.flash('#ff3d5a'); fx.burst(p.x, rowY(s, p.row), '#ff3d5a', 24); fx.text(p.x, rowY(s, p.row) - 30, t('fx.beep'), '#ffd0d8', 20); }
       lives = s.lives;
       if (s.best > best) fx.text(p.x + 30, rowY(s, p.row) - 10, '+10', '#fff36b', 16);
       best = s.best;
@@ -52,7 +53,7 @@ export function init(canvas, params) {
       px += (p.x - px) * 0.5; py += (rowY(s, p.row) - py) * 0.5; // glide to the new cell
       const jump = Math.sin(hopT * Math.PI) * 10;
       sprite(spec.goal.sprite, spec.goal.label, px, py - jump, PR + 1, '#fff');
-      if (s.best === 0) label('tap above to hop, beside to step', W / 2, 286, 13);
+      if (s.best === 0) label(t('hint.hop'), W / 2, 286, 13);
     },
   });
 }
